@@ -1,0 +1,29 @@
+sir-spendalot.tmn.name {
+    encode gzip
+
+    # API — exclusive handler, file_server never sees these requests
+    handle /api/* {
+        reverse_proxy localhost:8000
+    }
+
+    # SPA static files — catch-all, only reached if /api/* didn't match.
+    # Wrapping in handle {} makes it mutually exclusive with handle /api/*,
+    # which prevents file_server from intercepting POST requests to the API.
+    handle {
+        root * /home/basil/sir-spendalot/frontend/dist
+        try_files {path} /index.html
+        file_server
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
+        X-XSS-Protection "1; mode=block"
+    }
+
+    log {
+        output file /var/log/caddy/sir-spendalot.log
+        format json
+    }
+}

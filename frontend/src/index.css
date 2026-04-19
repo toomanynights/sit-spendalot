@@ -1,0 +1,537 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Base
+   ============================================================ */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    min-height: 100vh;
+  }
+
+  body {
+    @apply bg-medieval font-cinzel text-parchment;
+    background-attachment: fixed;
+  }
+
+  /* Number inputs — remove browser spinners */
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] { -moz-appearance: textfield; }
+
+  /* Date inputs — parchment colour on calendar icon */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) sepia(1) saturate(2) hue-rotate(5deg);
+    cursor: pointer;
+  }
+}
+
+/* ============================================================
+   Reusable component classes
+   ============================================================ */
+@layer components {
+
+  /* ----------------------------------------------------------
+     Decorative background glows (fixed, non-interactive)
+     ---------------------------------------------------------- */
+  .bg-glow-right {
+    position: fixed;
+    top: 10%;
+    right: -5%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(212,175,55,0.10) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-glow-left {
+    position: fixed;
+    bottom: -10%;
+    left: -5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139,69,19,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ----------------------------------------------------------
+     Card
+     ---------------------------------------------------------- */
+  .card {
+    background: linear-gradient(135deg, rgba(139,69,19,0.20) 0%, rgba(101,67,33,0.30) 100%);
+    @apply border border-gold/30 rounded-lg shadow-card overflow-hidden relative;
+  }
+
+  .card-danger {
+    background: linear-gradient(135deg, rgba(139,0,0,0.30) 0%, rgba(101,67,33,0.30) 100%);
+    @apply border border-danger/60 rounded-lg shadow-card overflow-hidden relative;
+  }
+
+  .card-header {
+    @apply flex items-center gap-3 px-6 py-5 border-b border-gold/20 bg-black/20;
+  }
+
+  .card-title {
+    @apply text-gold text-xl font-semibold tracking-wide m-0;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  /* Top shimmer line inside cards / banners */
+  .shimmer-top::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+  }
+
+  /* ----------------------------------------------------------
+     Buttons
+     ---------------------------------------------------------- */
+  .btn {
+    @apply px-6 py-3 rounded-md font-cinzel text-sm tracking-wide cursor-pointer;
+    @apply border-2 border-gold/30 text-parchment;
+    background-color: rgba(139,69,19,0.30);
+    transition: background-color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+  }
+
+  .btn:hover {
+    background-color: rgba(139,69,19,0.75);
+    @apply border-gold/50;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+    @apply border-gold text-brown-darker font-bold;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+    @apply shadow-gold;
+  }
+
+  .btn-active {
+    background-color: rgba(139,69,19,0.75);
+    @apply border-gold/60;
+    box-shadow: 0 0 8px rgba(212,176,55,0.6);
+  }
+
+  .btn-ghost {
+    @apply border-0 bg-transparent text-gold-muted p-0 tracking-normal;
+  }
+
+  .btn-ghost:hover {
+    @apply text-gold bg-transparent border-0 shadow-none;
+  }
+
+  /* ----------------------------------------------------------
+     Form inputs
+     ---------------------------------------------------------- */
+  .input {
+    @apply w-full px-3 py-3 rounded-md font-cinzel text-parchment text-sm outline-none transition-colors duration-300;
+    background: rgba(0,0,0,0.30);
+    @apply border-2 border-gold/30;
+  }
+
+  .input:focus {
+    @apply border-gold/70;
+  }
+
+  .input::placeholder {
+    @apply text-gold-muted/60;
+  }
+
+  .input-label {
+    @apply block text-sm text-gold-muted tracking-wide mb-2;
+  }
+
+  select.input {
+    @apply cursor-pointer;
+  }
+
+  select.input option {
+    @apply bg-brown-dark text-parchment;
+  }
+
+  /* ----------------------------------------------------------
+     Transaction / chronicle row
+     ---------------------------------------------------------- */
+  .tx-row {
+    @apply flex justify-between items-center p-4 rounded-md bg-black/20;
+  }
+
+  .tx-row-income {
+    @apply border-l-4 border-success;
+  }
+
+  .tx-row-expense {
+    @apply border-l-4 border-danger;
+  }
+
+  .tx-desc {
+    @apply text-sm font-semibold mb-1;
+  }
+
+  .tx-meta {
+    @apply text-xs text-gold-muted;
+  }
+
+  .tx-amount-positive {
+    @apply text-success font-bold text-lg;
+  }
+
+  .tx-amount-negative {
+    @apply text-danger font-bold text-lg;
+  }
+
+  /* ----------------------------------------------------------
+     Badge / tag
+     ---------------------------------------------------------- */
+  .badge {
+    @apply text-xs px-2 py-0.5 rounded font-bold;
+  }
+
+  .badge-primary {
+    @apply bg-gold text-brown-darker;
+  }
+
+  .badge-muted {
+    @apply bg-brown/60 text-parchment;
+  }
+
+  /* ----------------------------------------------------------
+     Section divider
+     ---------------------------------------------------------- */
+  .divider-gold {
+    @apply border-t-2 border-gold/20 my-6;
+  }
+
+  /* ----------------------------------------------------------
+     Stat value display
+     ---------------------------------------------------------- */
+  .stat-label {
+    @apply text-sm text-gold-muted mb-2;
+  }
+
+  .stat-value-green {
+    @apply text-3xl font-bold text-success;
+  }
+
+  .stat-value-gold {
+    @apply text-3xl font-bold text-gold;
+  }
+
+  .stat-value-danger {
+    @apply text-3xl font-bold text-danger;
+  }
+
+  /* ----------------------------------------------------------
+     Page layout
+     ---------------------------------------------------------- */
+  .page-container {
+    @apply relative z-10 max-w-7xl px-6 py-8;
+  }
+
+  .grid-dashboard {
+    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 items-start;
+  }
+
+  /* No longer needed as we'll use div spacing */
+  .grid-dashboard > * {
+    display: block;
+    width: 100%;
+  }
+
+  /* ----------------------------------------------------------
+     Header / banner
+     ---------------------------------------------------------- */
+  .site-header-banner {
+    @apply inline-flex items-center gap-6 px-10 py-6 rounded-lg relative overflow-hidden;
+    background: linear-gradient(135deg, rgba(139,69,19,0.30) 0%, rgba(101,67,33,0.30) 100%);
+    @apply border-2 border-gold shadow-gold;
+  }
+
+  .site-title {
+    @apply text-4xl font-bold tracking-wide;
+    background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .site-subtitle {
+    @apply text-sm tracking-widest uppercase text-gold-muted font-crimson italic m-0;
+  }
+
+  /* ----------------------------------------------------------
+     Floating advisor
+     ---------------------------------------------------------- */
+  .advisor-float {
+    @apply fixed z-50;
+    right: 1.25rem;
+    bottom: 1.25rem;
+  }
+
+  .advisor-badge {
+    @apply relative w-40 h-40 rounded-full border-2 border-gold/80 flex items-center justify-center text-gold font-cinzel font-bold;
+    background: linear-gradient(135deg, rgba(26,15,10,0.95) 0%, rgba(45,24,16,0.95) 100%);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.2);
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .advisor-badge:hover {
+    transform: rotate(5deg) scale(1.2);
+    box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+  }
+
+  .advisor-glow-ring {
+    @apply absolute inset-0 rounded-full pointer-events-none;
+    /* animation: advisor-ring-pulse 2s ease-in-out infinite; */
+    box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55);
+  }
+
+  .advisor-badge-core {
+    @apply relative z-10 tracking-wide text-2xl;
+  }
+
+  .advisor-speech-bubble {
+    @apply absolute right-0 w-72 p-4 rounded-lg border border-gold/40 animate-fade-in-up;
+    bottom: 11rem;
+    background: linear-gradient(135deg, rgba(45,24,16,0.98) 0%, rgba(26,15,10,0.98) 100%);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .advisor-speech-bubble::after {
+    content: '';
+    position: absolute;
+    right: 1.2rem;
+    bottom: -9px;
+    width: 16px;
+    height: 16px;
+    transform: rotate(45deg);
+    background: rgba(33, 18, 12, 0.98);
+    border-right: 1px solid rgba(212, 175, 55, 0.4);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+  }
+
+  .advisor-bubble-title {
+    @apply flex items-center gap-2 text-gold text-xs tracking-wider uppercase mb-2;
+  }
+
+  .advisor-bubble-text {
+    @apply text-sm leading-relaxed font-crimson italic text-parchment/95;
+  }
+
+  /* ----------------------------------------------------------
+     Tooltip / info box
+     ---------------------------------------------------------- */
+  .info-box {
+    @apply p-4 rounded-md bg-black/20 border-l-4 border-danger;
+  }
+
+  /* ----------------------------------------------------------
+     Footer
+     ---------------------------------------------------------- */
+  .site-footer {
+    @apply text-center mt-12 pt-6 border-t-2 border-gold/20 relative z-10;
+  }
+
+  .site-footer p {
+    @apply text-sm italic text-gold-muted tracking-wide font-crimson;
+  }
+
+  /* ----------------------------------------------------------
+     App shell & sidebar layout
+     ---------------------------------------------------------- */
+  .app-shell {
+    @apply flex min-h-screen;
+  }
+
+  .sidebar {
+    @apply w-64 shrink-0 flex flex-col fixed top-0 left-0 h-full z-40 transition-transform duration-300;
+    background: linear-gradient(180deg, #1a0f0a 0%, #2d1810 100%);
+    border-right: 1px solid rgba(212,175,55,0.20);
+  }
+
+  .sidebar-logo {
+    @apply flex items-center gap-3 px-6 py-5 border-b border-gold/20 shrink-0;
+  }
+
+  .sidebar-logo-title {
+    @apply text-gold font-bold tracking-wide text-lg leading-tight;
+  }
+
+  .sidebar-logo-sub {
+    @apply text-gold-muted text-xs italic font-crimson;
+  }
+
+  .sidebar-nav {
+    @apply flex-1 overflow-y-auto py-3;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-5 py-3 w-full text-left text-sm tracking-wide
+           text-parchment/60 transition-all duration-200 font-cinzel;
+    border-right: 2px solid transparent;
+  }
+
+  .nav-item:hover {
+    @apply text-parchment bg-gold/10;
+  }
+
+  .nav-item-active {
+    @apply text-gold bg-gold/10;
+    border-right-color: #d4af37;
+  }
+
+  .nav-section-label {
+    @apply px-5 pt-5 pb-1 text-xs tracking-widest uppercase text-gold-muted/50 font-cinzel;
+  }
+
+  .sidebar-footer {
+    @apply px-5 py-4 border-t border-gold/20 shrink-0;
+  }
+
+  /* Main content sits to the right of the 256px (w-64) sidebar */
+  .main-content {
+    @apply flex-1 min-h-screen;
+    margin-left: 16rem; /* w-64 = 256px = 16rem */
+  }
+
+  /* Mobile top bar (visible < md) */
+  .topbar {
+    @apply flex items-center justify-between px-4 py-3 sticky top-0 z-30 md:hidden;
+    background: rgba(26,15,10,0.95);
+    border-bottom: 1px solid rgba(212,175,55,0.20);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Sidebar overlay on mobile */
+  .sidebar-overlay {
+    @apply fixed inset-0 bg-black/60 z-30 md:hidden;
+  }
+
+  /* Page inner padding */
+  .page-shell {
+    @apply relative z-10;
+  }
+
+  .page-container {
+    @apply relative z-10 max-w-7xl px-4 md:px-8 py-6 md:py-8;
+  }
+
+  .page-title {
+    @apply text-2xl md:text-3xl font-bold text-gold tracking-wide mb-6;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-gold-muted font-crimson italic mb-6;
+  }
+
+  .page-context-header {
+    position: sticky;
+    top: 3.75rem; /* sits below mobile topbar */
+    z-index: 25;
+    padding: 0.75rem 1rem 0.75rem 1rem;
+    background: linear-gradient(180deg, rgba(26,15,10,0.995) 0%, rgba(36,20,13,0.995) 100%);
+    border-bottom: 1px solid rgba(212,175,55,0.24);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+  }
+
+  .page-context-switcher {
+    @apply mb-0;
+  }
+
+  .segmented-toggle {
+    display: flex;
+    border-radius: 0.375rem;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    overflow: hidden;
+  }
+
+  .segmented-toggle-button {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.05em;
+    transition: color 0.2s, background-color 0.2s;
+    background: rgba(0, 0, 0, 0.25);
+    color: rgba(244, 228, 193, 0.55);
+    border: none;
+    cursor: pointer;
+  }
+
+  .segmented-toggle-button:hover {
+    color: #f4e4c1;
+    background: rgba(212, 175, 55, 0.1);
+  }
+
+  .segmented-toggle-button-active {
+    font-weight: 700;
+    color: #1a0f0a;
+    background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+  }
+
+  @media (min-width: 768px) {
+    .page-context-header {
+      top: 0;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@layer utilities {
+  @keyframes advisor-ring-pulse {
+    0%, 100% {
+      opacity: 0.45;
+      box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.45);
+    }
+    50% {
+      opacity: 0.75;
+      box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.16);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50%       { opacity: 0.8; transform: scale(1.1); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s infinite;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.3s ease;
+  }
+}

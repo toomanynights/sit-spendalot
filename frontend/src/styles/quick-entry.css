@@ -1,0 +1,9 @@
+/* Quick Entry — touch targets (page padding matches global .page-container; do not override horizontal padding here) */
+
+.min-h-touch {
+  min-height: 2.75rem;
+}
+
+.min-w-touch {
+  min-width: 2.75rem;
+}

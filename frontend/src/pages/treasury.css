@@ -1,0 +1,86 @@
+/* Treasury (/treasury) — layout + list rhythm (plain CSS; imported from TreasuryPage) */
+
+.treasury-layout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .treasury-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .treasury-accounts {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .treasury-payment {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .treasury-categories {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+.treasury-block-title {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #d4af37;
+}
+
+.treasury-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+.treasury-row-meta {
+  font-size: 0.75rem;
+  color: #c9a961;
+  font-family: 'Crimson Text', serif;
+}
+
+.treasury-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.treasury-subcats {
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid rgba(212, 175, 55, 0.2);
+  font-size: 0.75rem;
+  color: #c9a961;
+  font-family: 'Crimson Text', serif;
+}
+
+.treasury-subcats button {
+  cursor: pointer;
+  color: #c9a961;
+  background: none;
+  border: none;
+  font: inherit;
+}
+
+.treasury-subcats button:hover {
+  color: #d4af37;
+}
+
