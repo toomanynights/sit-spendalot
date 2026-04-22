@@ -40,6 +40,13 @@ def _money(value: float) -> Decimal:
     return Decimal(f"{value:.2f}")
 
 
+def _maybe_subcategory(seed: int, options: list[str]) -> str | None:
+    """Return None about 60% of the time; otherwise a deterministic label."""
+    if seed % 5 < 3:
+        return None
+    return options[seed % len(options)]
+
+
 def seed(db: Session) -> None:
     if db.query(Account).count() > 0:
         print("⚠️  Accounts already exist; aborting analytics seed to avoid duplicates.")
@@ -73,21 +80,29 @@ def seed(db: Session) -> None:
     db.add_all([card, cash, bank])
     db.flush()
 
-    # Categories
-    daily_root = Category(name="Daily", type="daily")
-    unplanned_root = Category(name="Unplanned", type="unplanned")
-    db.add_all([daily_root, unplanned_root])
-    db.flush()
-
-    groceries = Category(name="Groceries", type="daily", parent_id=daily_root.id)
-    transport = Category(name="Transportation", type="daily", parent_id=daily_root.id)
-    dining = Category(name="Dining", type="daily", parent_id=daily_root.id)
-    bills = Category(name="Bills", type="daily", parent_id=daily_root.id)
-    health = Category(name="Health", type="unplanned", parent_id=unplanned_root.id)
-    home = Category(name="Home Repairs", type="unplanned", parent_id=unplanned_root.id)
-    travel = Category(name="Travel", type="unplanned", parent_id=unplanned_root.id)
+    # Categories (match current UI mental model: top-level categories by type)
+    groceries = Category(name="Groceries", type="daily")
+    transport = Category(name="Transportation", type="daily")
+    dining = Category(name="Dining", type="daily")
+    bills = Category(name="Bills", type="daily")
+    health = Category(name="Health", type="unplanned")
+    home = Category(name="Home Repairs", type="unplanned")
+    travel = Category(name="Travel", type="unplanned")
     db.add_all([groceries, transport, dining, bills, health, home, travel])
     db.flush()
+
+    # Optional leaf categories for autocomplete-style UX
+    db.add_all(
+        [
+            Category(name="Bakery", type="daily", parent_id=groceries.id),
+            Category(name="Metro", type="daily", parent_id=transport.id),
+            Category(name="Cafe", type="daily", parent_id=dining.id),
+            Category(name="Utilities", type="daily", parent_id=bills.id),
+            Category(name="Pharmacy", type="unplanned", parent_id=health.id),
+            Category(name="Repairs", type="unplanned", parent_id=home.id),
+            Category(name="Flights", type="unplanned", parent_id=travel.id),
+        ]
+    )
 
     # Settings (analytics-related knobs)
     db.add(
@@ -151,7 +166,7 @@ def seed(db: Session) -> None:
             Transaction(
                 account_id=primary.id,
                 category_id=groceries.id,
-                subcategory="General",
+                subcategory=_maybe_subcategory(i, ["Tesco", "Lidl", "Aldi", "Sainsbury's", "Local market"]),
                 amount=_money(max(6.5, wave)),
                 transaction_date=day,
                 type="daily",
@@ -167,6 +182,7 @@ def seed(db: Session) -> None:
                 Transaction(
                     account_id=primary.id,
                     category_id=transport.id,
+                    subcategory=_maybe_subcategory(i + 7, ["Bus", "Tube", "Fuel station", "Parking"]),
                     amount=_money(8 + (i % 7) * 0.9),
                     transaction_date=day,
                     type="daily",
@@ -182,6 +198,7 @@ def seed(db: Session) -> None:
                 Transaction(
                     account_id=primary.id,
                     category_id=dining.id,
+                    subcategory=_maybe_subcategory(i + 13, ["KFC", "Nando's", "Cafe Nero", "Lunch deal"]),
                     amount=_money(11 + (i % 5) * 2.1),
                     transaction_date=day,
                     type="daily",
@@ -197,6 +214,7 @@ def seed(db: Session) -> None:
                 Transaction(
                     account_id=primary.id,
                     category_id=bills.id,
+                    subcategory=_maybe_subcategory(i + 19, ["Electricity", "Water", "Internet", "Mobile plan"]),
                     amount=_money(34 + (day.day % 3) * 9),
                     transaction_date=day,
                     type="daily",
@@ -212,6 +230,7 @@ def seed(db: Session) -> None:
                 Transaction(
                     account_id=primary.id,
                     category_id=health.id,
+                    subcategory=_maybe_subcategory(i + 23, ["Pharmacy", "Dentist", "Clinic"]),
                     amount=_money(28 + (i % 4) * 17),
                     transaction_date=day,
                     type="unplanned",
@@ -225,6 +244,7 @@ def seed(db: Session) -> None:
                 Transaction(
                     account_id=primary.id,
                     category_id=home.id,
+                    subcategory=_maybe_subcategory(i + 29, ["Plumber", "Electrician", "Hardware store"]),
                     amount=_money(120 + (i % 3) * 65),
                     transaction_date=day,
                     type="unplanned",
@@ -270,6 +290,7 @@ def seed(db: Session) -> None:
         Transaction(
             account_id=primary.id,
             category_id=travel.id,
+            subcategory="Emergency flight",
             amount=Decimal("389.00"),
             transaction_date=today - timedelta(days=14),
             type="unplanned",
@@ -287,6 +308,12 @@ def seed(db: Session) -> None:
         (8, Decimal("-120.00"), "predicted", None, "Confirmed: Savings Interest"),
         (3, Decimal("18.20"), "daily", dining.id, "Snack run"),
     ]:
+        if kind == "daily":
+            sub = _maybe_subcategory(delta, ["Local shop", "Petrol station", "Cafe"])
+        elif kind == "unplanned":
+            sub = _maybe_subcategory(delta, ["Locker repair", "Maintenance callout"])
+        else:
+            sub = None
         txs.append(
             Transaction(
                 account_id=savings.id,
@@ -296,7 +323,7 @@ def seed(db: Session) -> None:
                 type=kind,
                 payment_method_id=card.id if kind != "predicted" else bank.id,
                 description=note,
-                subcategory=("In lieu of 1 Feb 2026" if kind == "predicted" else None),
+                subcategory=("In lieu of 1 Feb 2026" if kind == "predicted" else sub),
                 confirmed=True,
             )
         )

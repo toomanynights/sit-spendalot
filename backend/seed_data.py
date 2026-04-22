@@ -86,8 +86,8 @@ def seed(db: Session) -> None:
     transport = Category(name="Transportation", type="daily")
     housing = Category(name="Housing", type="daily")
     health = Category(name="Health", type="daily")
-    unplanned_cat = Category(name="Unplanned", type="unplanned")
-    db.add_all([food, transport, housing, health, unplanned_cat])
+    emergencies = Category(name="Emergencies", type="unplanned")
+    db.add_all([food, transport, housing, health, emergencies])
     db.flush()
 
     # Subcategories
@@ -97,11 +97,11 @@ def seed(db: Session) -> None:
     public_transit = Category(name="Public Transit", type="daily", parent_id=transport.id)
     rent = Category(name="Rent", type="daily", parent_id=housing.id)
     utilities = Category(name="Utilities", type="daily", parent_id=housing.id)
-    pharmacy = Category(name="Pharmacy", type="unplanned", parent_id=unplanned_cat.id)
+    pharmacy = Category(name="Pharmacy", type="unplanned", parent_id=emergencies.id)
     db.add_all([groceries, dining, fuel, public_transit, rent, utilities, pharmacy])
     db.flush()
 
-    print("  ✅ Categories seeded (7 top-level + subcategories)")
+    print("  ✅ Categories seeded (top-level + subcategories)")
 
     # ------------------------------------------------------------------ #
     # Transactions (last 7 days)                                           #
@@ -111,8 +111,8 @@ def seed(db: Session) -> None:
     transactions = [
         Transaction(
             account_id=royal_treasury.id,
-            category_id=groceries.id,
-            subcategory="Weekly shop",
+            category_id=food.id,
+            subcategory="Groceries",
             amount=Decimal("68.40"),
             transaction_date=today - timedelta(days=6),
             type="daily",
@@ -122,7 +122,8 @@ def seed(db: Session) -> None:
         ),
         Transaction(
             account_id=royal_treasury.id,
-            category_id=fuel.id,
+            category_id=transport.id,
+            subcategory="Fuel",
             amount=Decimal("55.00"),
             transaction_date=today - timedelta(days=5),
             type="daily",
@@ -132,8 +133,8 @@ def seed(db: Session) -> None:
         ),
         Transaction(
             account_id=royal_treasury.id,
-            category_id=dining.id,
-            subcategory="Lunch",
+            category_id=food.id,
+            subcategory="Dining Out",
             amount=Decimal("18.50"),
             transaction_date=today - timedelta(days=4),
             type="daily",
@@ -143,7 +144,8 @@ def seed(db: Session) -> None:
         ),
         Transaction(
             account_id=royal_treasury.id,
-            category_id=public_transit.id,
+            category_id=transport.id,
+            subcategory="Public Transit",
             amount=Decimal("12.00"),
             transaction_date=today - timedelta(days=3),
             type="daily",
@@ -153,7 +155,8 @@ def seed(db: Session) -> None:
         ),
         Transaction(
             account_id=royal_treasury.id,
-            category_id=pharmacy.id,
+            category_id=emergencies.id,
+            subcategory="Pharmacy",
             amount=Decimal("23.75"),
             transaction_date=today - timedelta(days=2),
             type="unplanned",
@@ -163,8 +166,8 @@ def seed(db: Session) -> None:
         ),
         Transaction(
             account_id=royal_treasury.id,
-            category_id=groceries.id,
-            subcategory="Top-up",
+            category_id=food.id,
+            subcategory="Groceries",
             amount=Decimal("14.90"),
             transaction_date=today - timedelta(days=1),
             type="daily",
@@ -174,8 +177,8 @@ def seed(db: Session) -> None:
         ),
         Transaction(
             account_id=royal_treasury.id,
-            category_id=dining.id,
-            subcategory="Coffee",
+            category_id=food.id,
+            subcategory="Dining Out",
             amount=Decimal("4.80"),
             transaction_date=today,
             type="daily",

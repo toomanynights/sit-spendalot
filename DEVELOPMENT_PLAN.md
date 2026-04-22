@@ -67,10 +67,11 @@
 - [ ] 7.2 - Enforce auth (swap optional_auth → require_auth on all routes; verify login page redirects correctly)
 - [ ] 7.3 - Data migration tool (from Google Sheets)
 - [ ] 7.4 - UI improvements (see specs)
-- [ ] 7.5 - Default payment method — selected by default when submitting via dashboard block / Quick entry (per account)
+- [ ] 7.5 - Default payment method — add to Treasury; make selected by default when submitting via dashboard block / Quick entry (per account)
 - [ ] 7.7 - Chronicles improvement
 - [ ] 7.8 - Explicit income/expense control
 - [ ] 7.9 - Components reuse
+- [ ] 7.10 - Browser notifications for predictions about to go overdue / already overdue (with setting: on/off + time)
 
 ### Phase 8: Deployment (some may already be implemented - check) ✅ / ❌
 - [ ] 8.1 - Systemd services
@@ -84,19 +85,22 @@
 - [ ] 9.2 - Dashboard analytics charts block (compact spending-by-type bar chart — deferred from Phase 7.1)
 - [ ] 9.3 - Edit / soft-delete in “Recent Chronicles” dashboard block (deferred from Phase 7.6)
 - [ ] 9.4 - Add "past instances" to Prophecies (needs design work)
-- [ ] 9.5 - make "Show predictive features on non-primary accounts" setting actualy work (dashboard + analytics)
+- [ ] 9.5 - Analytics overhaul
 - [ ] 9.6 - add an optional line on top of "Thy Lowest Fortunes" block, showing the date when the account will go below zero (if present)
-- [ ] 9.5 - Balance-over-time analytics chart (see deferred from 6.5)
+- [ ] 9.7 - make "Show predictive features on non-primary accounts" setting actualy work (dashboard + analytics with the same logic as in dashboard)
 
-### Phase 10: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop...) ✅ / ❌
-- [ ] 10.1 - General components (sidear, topbar, general page content)
-- [ ] 10.2 - Dashboard page, floating assistant
-- [ ] 10.3 - Quick Entry page
-- [ ] 10.4 - Chronicles page
-- [ ] 10.5 - Prophecies page
-- [ ] 10.6 - Analytics page
-- [ ] 10.7 - Treasury page
-- [ ] 10.8 - Settings page
+### Phase 10: Rolling predictions ✅ / ❌
+- [ ] 10.0 - Feature initiation (see specs)
+
+### Phase 11: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop...) ✅ / ❌
+- [ ] 11.1 - General components (sidear, topbar, general page content)
+- [ ] 11.2 - Dashboard page, floating assistant
+- [ ] 11.3 - Quick Entry page
+- [ ] 11.4 - Chronicles page
+- [ ] 11.5 - Prophecies page
+- [ ] 11.6 - Analytics page
+- [ ] 11.7 - Treasury page
+- [ ] 11.8 - Settings page
 
 ---
 
@@ -2030,6 +2034,55 @@ sudo systemctl restart spendalot-api
 **What:** Bring Chronicles-style **edit** and **soft-delete** (and restore if applicable) into the **Recent Chronicles** dashboard card so users need not navigate to `/transactions` for quick fixes.
 
 **Mark complete:** `[ ] 9.3 - Recent Chronicles dashboard edit/delete`
+
+---
+
+### Task 9.5: Analytics overhaul
+
+Analytics page is... There. It's not quite good.
+Start this task with detailed analysis of the page. See what works and what doesn't. Challenge design decisions where it makes sense.
+
+A few things to start off (consider them to be discussion points rather than orders):
+
+- Spending by type: Pie chart is good. But 30/60/90 day windows? Why that amount and not rolling average amount? Why composite if we could just switch to previous period, or better yet, combine (1/2/3 rolling averages, show what dates currently show, and give the option to step back one rolling average amount)?
+- Spending by category: kind of awkward. Why calendar month instead of period like in Spending by type? Why not have both combined? Why not the usual regular horizontal bar chart?
+- Daily spending vs average: again, awkward. This is the THIRD option of period choosing (lack thereof in this case), plus it begs for line grapph with average baseline.
+- Monthly comparison (spending and gains): feels like lost opportunity. Can't even elaborate. It could be a line chart, bar chart, mixed chart, and instead, it's... What it is.
+- Insights: description doesn't need to state it's "text". It's good otherwise, but "Category trends" feels like it belongs to a separate block + I feel some very useful info is missing.
+- Balance-over-time analytics chart (see deferred from 6.5). It's not there. It could be.
+
+
+**Mark complete:** `[ ] 9.5 -  Analytics overhaul`
+
+---
+
+## Phase 10: Rolling predictions
+
+**Purpose:** Improve prediction engine so that it accounts not only for predictions created as "Prophecies", but also for unplanned patterns.
+
+---
+
+### Task 10.0: Feature initiation
+
+Initiate feature's R&D, plan the implementation when the concept is locked.
+
+Draft:
+- Sometimes unplanned expenses show patterns 
+- for example: cat food is, on the average, 2 transactions 50 EUR each
+- it can't be a prediction: there is no exact range (sometimes food for one cat runs out, sometimes for other, sometimes for both...)
+- Solution: rolling prediction
+- There should be a tool allowing to track patterns over 1/2/3 rolling periods and suggest creating/adjusting rolling expenses
+- For example: rolling prediction expects an average of 100 EUR per month for cat food
+- if 0 spent on cat food, it expects -100 by the end of period. If 20 spent, it expects 80 more
+- it should track shifts and suggest adjustments (example: over past three rolling periods there were on the average 70/period spent, while rolling average expects 100 - suggest adjustments) 
+- can use existing analytics methods 
+- due to many variables, there should be a tooltip in dashboard showing how the predictions were calculated
+
+Study the codebase, suggest technical solution, UI placement, UI/UX, etc. Plan the implementation accordingly.
+
+DOD: feature is locked, described in specs, plan updated.
+
+**Mark complete:** `[ ] 10.0 - Feature initiation (see specs)`
 
 ---
 
