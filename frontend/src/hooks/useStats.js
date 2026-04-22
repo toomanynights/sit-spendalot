@@ -25,18 +25,49 @@ export function useSpendingByCategory(params) {
   })
 }
 
-export function useDailyTrend(days = 30) {
+export function useSpendingBySubcategory(params) {
   return useQuery({
-    queryKey: ['stats', 'daily-trend', days],
-    queryFn: () => statsApi.dailyTrend(days),
+    queryKey: ['stats', 'spending-by-subcategory', params],
+    queryFn: () => statsApi.spendingBySubcategory(params),
+    enabled: Boolean(params?.category_name && params?.date_from && params?.date_to),
+  })
+}
+
+export function useSpendingByType(params) {
+  return useQuery({
+    queryKey: ['stats', 'spending-by-type', params],
+    queryFn: () => statsApi.spendingByType(params),
+    enabled: Boolean(params?.date_from && params?.date_to),
+  })
+}
+
+export function useDailyTrend(days = 30, accountId) {
+  return useQuery({
+    queryKey: ['stats', 'daily-trend', days, accountId ?? null],
+    queryFn: () => statsApi.dailyTrend({
+      days,
+      ...(accountId ? { account_id: accountId } : {}),
+    }),
     staleTime: 60_000,
   })
 }
 
-export function useMonthlyComparison() {
+export function useMonthlyComparison(months = 6, accountId) {
   return useQuery({
-    queryKey: ['stats', 'monthly-comparison'],
-    queryFn: statsApi.monthlyComparison,
+    queryKey: ['stats', 'monthly-comparison', months, accountId ?? null],
+    queryFn: () => statsApi.monthlyComparison({
+      months,
+      ...(accountId ? { account_id: accountId } : {}),
+    }),
+    staleTime: 60_000,
+  })
+}
+
+export function useAnalyticsInsights(params) {
+  return useQuery({
+    queryKey: ['stats', 'insights', params],
+    queryFn: () => statsApi.insights(params),
+    enabled: Boolean(params?.date_from && params?.date_to),
     staleTime: 60_000,
   })
 }

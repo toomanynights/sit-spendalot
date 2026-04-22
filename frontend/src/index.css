@@ -87,6 +87,10 @@
     @apply text-gold text-xl font-semibold tracking-wide m-0;
   }
 
+  .card-subtitle {
+    @apply text-xs text-gold-muted tracking-wide;
+  }
+
   .card-body {
     @apply p-6;
   }

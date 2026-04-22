@@ -12,10 +12,23 @@ export const statsApi = {
   spendingByCategory: (params) =>
     api.get('/stats/spending-by-category', params),
 
-  /** @param {number} [days=30] */
-  dailyTrend: (days = 30) =>
-    api.get('/stats/daily-trend', { days }),
+  /** @param {{ category_name: string, date_from: string, date_to: string, account_id?: number }} params */
+  spendingBySubcategory: (params) =>
+    api.get('/stats/spending-by-subcategory', params),
 
-  monthlyComparison: () =>
-    api.get('/stats/monthly-comparison'),
+  /** @param {{ date_from: string, date_to: string, account_id?: number }} params */
+  spendingByType: (params) =>
+    api.get('/stats/spending-by-type', params),
+
+  /** @param {{ days?: number, account_id?: number }} [params] */
+  dailyTrend: (params) =>
+    api.get('/stats/daily-trend', params),
+
+  /** @param {{ months?: number, account_id?: number }} [params] */
+  monthlyComparison: (params) =>
+    api.get('/stats/monthly-comparison', params),
+
+  /** @param {{ date_from: string, date_to: string, account_id?: number }} params */
+  insights: (params) =>
+    api.get('/stats/insights', params),
 }

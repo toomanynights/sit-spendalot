@@ -61,7 +61,7 @@
 - [x] 6.3b - Universal sticky page topbar (title/subtitle/account row)
 - [x] 6.4 - Settings page (realm prefs, excluded days, decimals sync, horizon/instance regen; master data → 6.4a Treasury)
 - [x] 6.4a - Treasury page (`/treasury`: accounts, categories, payment methods)
-- [ ] 6.5 - Analytics page (`/analytics`)
+- [x] 6.5 - Analytics page (`/analytics`)
 
 ### Phase 7: Additional Features ✅ / ❌
 - [ ] 7.2 - Enforce auth (swap optional_auth → require_auth on all routes; verify login page redirects correctly)
@@ -85,6 +85,8 @@
 - [ ] 9.3 - Edit / soft-delete in “Recent Chronicles” dashboard block (deferred from Phase 7.6)
 - [ ] 9.4 - Add "past instances" to Prophecies (needs design work)
 - [ ] 9.5 - make "Show predictive features on non-primary accounts" setting actualy work (dashboard + analytics)
+- [ ] 9.6 - add an optional line on top of "Thy Lowest Fortunes" block, showing the date when the account will go below zero (if present)
+- [ ] 9.5 - Balance-over-time analytics chart (see deferred from 6.5)
 
 ### Phase 10: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop...) ✅ / ❌
 - [ ] 10.1 - General components (sidear, topbar, general page content)
@@ -1706,24 +1708,86 @@ GET /api/categories/subcategory-usage
 
 ### Task 6.5: Analytics page (`/analytics`)
 
-**What:** Dedicated analytics page (not the small dashboard widget).
+**What:** Dedicated analytics page (not the small dashboard widget), scoped by the topbar-selected account.
 
-**Charts / content:**
-- Spending by category pie chart (selectable date range)
-- Daily expenses trend line chart (rolling 30/60/90 days)
-- Month-over-month comparison bar chart
-- Balance history line chart (actual + predicted overlay)
+**Global behavior:**
+- The selected account in the universal topbar is the analytics data source.
+- Hide cards/charts that have empty datasets where possible; use compact helper text when a section has no rows for the selected period.
+- Split page into sections by data type; each section can own its own filters.
+- Use settings-driven periods and thresholds where applicable:
+  - `rolling_average_days`
+  - `daily_high_threshold`
+  - `daily_low_threshold`
+- Include **scheduled/predicted** spending where analytically appropriate (it is spending), while still excluding transfer/correction flows from spending-only aggregates unless explicitly labeled otherwise.
 
-**Backend endpoints (representative):**
+**Section A - Composition**
+1. **Spending by type** (daily / unplanned / scheduled):
+   - Donut chart for selected period with window switch (`30d | 60d | 90d`).
+   - Expandable legend rows show per-type breakdown.
+   - For **Scheduled**, category labels use prediction template names (fallback: parsed `Confirmed: ...` description), not "In lieu ..." subcategory notes.
+2. **Spending by category (current month)**:
+   - Top-level category distribution for the selected month anchor.
+   - Header switch: `Daily | Unplanned`.
+   - Previous/Next month navigation.
+   - Select category to inspect subcategory breakdown list.
+
+**Section B - Baseline behavior**
+3. **Daily spending vs average**:
+   - Trend view for the selected `rolling_average_days` window.
+   - Baseline from rolling-average spending; visual status for above/below/in-range thresholds.
+
+**Section C - Time trends**
+4. **Monthly comparison**:
+   - Calendar-month totals for recent months with spending and gains.
+   - Pagination (5 items/page) with Previous/Next controls.
+   - Month-over-month direction indicators (`↗`, `↘`, `→`) with spending/gains-specific coloring semantics.
+5. **Account balance history**:
+   - Deferred from this task; not implemented in 6.5 MVP.
+   - Candidate follow-up in Phase 9 if needed.
+
+**Section D - Insight blocks**
+6. **Text achievements** (when data exists):
+   - e.g. days above zero, longest streak without unplanned spend, days since last overdue prediction.
+7. **Top expenses for chosen period**:
+   - Most expensive single purchase
+   - Biggest spending day
+   - Most frequent category/subcategory/payment method
+   - (No merchant/payee metric in this task; no dedicated merchant field)
+8. **Category trends**:
+   - Delta vs previous comparable period (percent up/down).
+   - Optional tiny sparklines if data is already available; otherwise text+delta only for MVP.
+
+**Backend endpoints (minimum for this task):**
 ```
-GET /api/stats/spending-by-category?date_from=&date_to=
-GET /api/stats/daily-trend?days=30
-GET /api/stats/monthly-comparison
+GET /api/stats/spending-by-category?date_from=&date_to=&tx_type=&account_id=
+GET /api/stats/spending-by-subcategory?category_name=&date_from=&date_to=&tx_type=&account_id=
+GET /api/stats/spending-by-type?date_from=&date_to=&account_id=
+GET /api/stats/daily-trend?days=30&account_id=
+GET /api/stats/monthly-comparison?account_id=
+GET /api/stats/insights?date_from=&date_to=&account_id=
 ```
 
-**Note:** The **compact “spending by type” bar chart on the dashboard** is **Phase 9.2** (formerly 7.1) so the dashboard block can ship independently.
+**Implementation notes (completed in 6.5):**
+- Analytics queries are account-scoped and refetch on topbar account change.
+- Spending-by-category and subcategory endpoints accept optional `tx_type` (`daily|unplanned|predicted`) for filtered composition views.
+- Scheduled breakdown labels are derived from prediction templates when available.
+- Seed/demo analytics data supports both primary and secondary accounts for validation.
 
-**Mark complete:** `[ ] 6.5 - Analytics page`
+**Frontend / data notes:**
+- Keep chart rendering resilient to sparse data.
+- Use account-scoped query keys so topbar account changes refetch analytics cleanly.
+- Reuse existing card and typography patterns from dashboard for consistency.
+
+**Note:** The **compact “spending by type” bar chart on the dashboard** remains **Phase 9.2**; this task covers the dedicated `/analytics` page only.
+
+**6.5 completion checklist:**
+- [x] Composition section shipped (type + category views)
+- [x] Baseline section shipped (daily spending vs average)
+- [x] Monthly comparison shipped (with pagination + delta arrows)
+- [x] Insight blocks shipped
+- [x] Account-scoped analytics behavior verified
+
+**Mark complete:** `[x] 6.5 - Analytics page`
 
 ---
 

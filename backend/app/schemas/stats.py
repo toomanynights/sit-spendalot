@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from pydantic import BaseModel
@@ -22,3 +23,98 @@ class TodayStatsResponse(BaseModel):
     prediction_horizon_days: int = 90
     daily_high_threshold: int = 110
     daily_low_threshold: int = 90
+
+
+class CategorySpendingRow(BaseModel):
+    category_name: str
+    total: Decimal
+    tx_count: int
+
+
+class CategorySpendingResponse(BaseModel):
+    account_id: int
+    date_from: date
+    date_to: date
+    total_spending: Decimal
+    categories: list[CategorySpendingRow]
+
+
+class SubcategorySpendingRow(BaseModel):
+    subcategory: str
+    total: Decimal
+    tx_count: int
+
+
+class CategorySubcategoryResponse(BaseModel):
+    account_id: int
+    category_name: str
+    date_from: date
+    date_to: date
+    total_spending: Decimal
+    subcategories: list[SubcategorySpendingRow]
+
+
+class SpendingTypeRow(BaseModel):
+    tx_type: str
+    total: Decimal
+    categories: list[CategorySpendingRow]
+
+
+class SpendingByTypeResponse(BaseModel):
+    account_id: int
+    date_from: date
+    date_to: date
+    types: list[SpendingTypeRow]
+
+
+class DailyTrendRow(BaseModel):
+    date: date
+    spending: Decimal
+    rolling_average: Decimal
+    status: str  # high / low / normal / zero
+
+
+class DailyTrendResponse(BaseModel):
+    account_id: int
+    days: int
+    threshold_high: int
+    threshold_low: int
+    points: list[DailyTrendRow]
+
+
+class MonthlyComparisonRow(BaseModel):
+    month: str  # YYYY-MM
+    spending: Decimal
+    gains: Decimal
+
+
+class MonthlyComparisonResponse(BaseModel):
+    account_id: int
+    months: list[MonthlyComparisonRow]
+
+
+class CategoryTrendRow(BaseModel):
+    category_name: str
+    current_total: Decimal
+    previous_total: Decimal
+    delta_percent: Decimal
+
+
+class AnalyticsInsightsResponse(BaseModel):
+    account_id: int
+    date_from: date
+    date_to: date
+    days_above_zero: int
+    longest_streak_without_unplanned: int
+    days_since_last_overdue_prediction: int | None
+    most_expensive_purchase_amount: Decimal | None
+    most_expensive_purchase_label: str | None
+    biggest_spending_day_amount: Decimal | None
+    biggest_spending_day_date: date | None
+    most_frequent_payment_method: str | None
+    most_frequent_payment_method_count: int
+    most_frequent_daily_category: str | None
+    most_frequent_daily_category_count: int
+    most_frequent_unplanned_category: str | None
+    most_frequent_unplanned_category_count: int
+    category_trends: list[CategoryTrendRow]
