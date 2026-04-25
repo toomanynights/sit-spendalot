@@ -3,9 +3,14 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.transfer import TransferCreate, TransferResponse
+from app.services.auth_service import require_auth
 from app.services import transfer_service
 
-router = APIRouter(prefix="/api/transfers", tags=["transfers"])
+router = APIRouter(
+    prefix="/api/transfers",
+    tags=["transfers"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 @router.post("", response_model=TransferResponse, status_code=201)

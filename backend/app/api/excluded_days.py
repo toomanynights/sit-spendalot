@@ -5,9 +5,14 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.excluded_day import ExcludedDayCreate, ExcludedDayResponse
+from app.services.auth_service import require_auth
 from app.services import excluded_day_service
 
-router = APIRouter(prefix="/api/excluded-days", tags=["excluded-days"])
+router = APIRouter(
+    prefix="/api/excluded-days",
+    tags=["excluded-days"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 @router.get("", response_model=list[ExcludedDayResponse])

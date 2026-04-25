@@ -14,9 +14,14 @@ from app.schemas.prediction import (
     PredictionTemplateResponse,
     PredictionTemplateUpdate,
 )
+from app.services.auth_service import require_auth
 from app.services import forecast_service, prediction_instance_service, prediction_template_service
 
-router = APIRouter(prefix="/api/predictions", tags=["predictions"])
+router = APIRouter(
+    prefix="/api/predictions",
+    tags=["predictions"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 # ------------------------------------------------------------------ #

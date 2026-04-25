@@ -64,7 +64,7 @@
 - [x] 6.5 - Analytics page (`/analytics`)
 
 ### Phase 7: Additional Features ✅ / ❌
-- [ ] 7.2 - Enforce auth (swap optional_auth → require_auth on all routes; verify login page redirects correctly)
+- [x] 7.2 - Enforce auth (swap optional_auth → require_auth on all routes; verify login page redirects correctly)
 - [ ] 7.3 - Data migration tool (from Google Sheets)
 - [ ] 7.4 - UI improvements (see specs)
 - [ ] 7.5 - Default payment method — add to Treasury; make selected by default when submitting via dashboard block / Quick entry (per account)
@@ -1811,7 +1811,7 @@ GET /api/stats/insights?date_from=&date_to=&account_id=
 
 **What:** Swap `optional_auth` → `require_auth` on all API routes; verify login page and redirects.
 
-**Mark complete:** `[ ] 7.2 - Enforce authentication`
+**Mark complete:** `[x] 7.2 - Enforce authentication`
 
 ---
 

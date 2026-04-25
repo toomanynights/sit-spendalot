@@ -7,9 +7,14 @@ from app.schemas.payment_method import (
     PaymentMethodResponse,
     PaymentMethodUpdate,
 )
+from app.services.auth_service import require_auth
 from app.services import payment_method_service
 
-router = APIRouter(prefix="/api/payment-methods", tags=["payment-methods"])
+router = APIRouter(
+    prefix="/api/payment-methods",
+    tags=["payment-methods"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 @router.get("", response_model=list[PaymentMethodResponse])

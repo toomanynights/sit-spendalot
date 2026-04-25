@@ -11,9 +11,14 @@ from app.schemas.transaction import (
     TransactionResponse,
     TransactionUpdate,
 )
+from app.services.auth_service import require_auth
 from app.services import transaction_service
 
-router = APIRouter(prefix="/api/transactions", tags=["transactions"])
+router = APIRouter(
+    prefix="/api/transactions",
+    tags=["transactions"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 # NOTE: /subcategories must be declared before /{transaction_id} so FastAPI

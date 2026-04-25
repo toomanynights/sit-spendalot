@@ -3,9 +3,14 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.settings import SettingsResponse, SettingsUpdate
+from app.services.auth_service import require_auth
 from app.services import settings_service
 
-router = APIRouter(prefix="/api/settings", tags=["settings"])
+router = APIRouter(
+    prefix="/api/settings",
+    tags=["settings"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 @router.get("", response_model=SettingsResponse)

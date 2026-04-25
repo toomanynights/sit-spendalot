@@ -5,6 +5,14 @@ function getAuthHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+function handleUnauthorized(path) {
+  localStorage.removeItem('access_token')
+  if (typeof window === 'undefined') return
+  if (window.location.pathname === '/login') return
+  if (path.startsWith('/auth/')) return
+  window.location.replace('/login')
+}
+
 export class ApiError extends Error {
   constructor(status, message, data = {}) {
     super(message)
@@ -37,6 +45,9 @@ async function request(path, { body, params, headers = {}, ...rest } = {}) {
   })
 
   if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized(path)
+    }
     let errorData = {}
     try { errorData = await response.json() } catch { /* empty */ }
     const message =

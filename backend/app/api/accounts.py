@@ -8,9 +8,14 @@ from app.schemas.account import (
     AccountUpdate,
     BalanceCorrectionCreate,
 )
+from app.services.auth_service import require_auth
 from app.services import account_service
 
-router = APIRouter(prefix="/api/accounts", tags=["accounts"])
+router = APIRouter(
+    prefix="/api/accounts",
+    tags=["accounts"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 @router.get("", response_model=list[AccountResponse])

@@ -14,9 +14,14 @@ from app.schemas.stats import (
     SpendingByTypeResponse,
     TodayStatsResponse,
 )
+from app.services.auth_service import require_auth
 from app.services import stats_service
 
-router = APIRouter(prefix="/api/stats", tags=["stats"])
+router = APIRouter(
+    prefix="/api/stats",
+    tags=["stats"],
+    dependencies=[Depends(require_auth)],
+)
 
 
 @router.get("/today", response_model=TodayStatsResponse)
