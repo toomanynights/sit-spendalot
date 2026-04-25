@@ -92,7 +92,7 @@
 ### Phase 10: Rolling predictions ✅ / ❌
 - [ ] 10.0 - Feature initiation (see specs)
 
-### Phase 11: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop... Some pages/elements already adapted to mobile - "no change needed" is also a valid answer) ✅ / ❌
+### Phase 11: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop/customized mobile view... Some pages/elements already adapted to mobile - "no change needed" is also a valid answer) ✅ / ❌
 - [ ] 11.1 - General components (sidear, topbar, general page content)
 - [ ] 11.2 - Dashboard page, floating assistant
 - [ ] 11.3 - Quick Entry page
