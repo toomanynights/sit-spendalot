@@ -69,9 +69,11 @@
 - [x] 7.4 - UI improvements (see specs)
 - [x] 7.5 - Default payment method — add to Treasury; make selected by default when submitting via dashboard block / Quick entry (per account)
 - [x] 7.7 - Chronicles improvement
-- [ ] 7.8 - Explicit income/expense control (and filter categories everywhere: Record Thy Deed, Quick entry...) (and add category type to Unplanned - income/expense)
+- [x] 7.8 - Explicit income/expense control in Record Thy Deed, Quick entry (and add default type to categories). 
 - [ ] 7.9 - Components reuse
-- [ ] 7.10 - Browser notifications for predictions about to go overdue / already overdue (with setting: on/off + time)
+- [x] 7.10 - Browser notifications for predictions about to go overdue / already overdue (with setting: on/off + time)
+- [ ] 7.11 - Per-account checkup vs. actual balance (in This Day's Fortune: add buttons on the right from the sum to correct/transfer/checkup; checkup button in treasury; make accounts expandable with the list of checkups. Checkup is a form with current balance and a separate field for each payment method; sum of those fields = corrected balance, can use regular correction method. in This Day's Fortune add alert if account not checked up within customizeable period. In Settings add checkup notification period.)
+- [ ] 7.12 - In topbar, add optional attention dot in case account hasn't been checked up within specified period; if it has unconfirmed today/past prophecies
 
 ### Phase 8: Deployment (some may already be implemented - check) ✅ / ❌
 - [ ] 8.1 - Systemd services
@@ -96,8 +98,8 @@
 - [ ] 10.0 - Feature initiation (see specs)
 
 ### Phase 11: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop/customized mobile view... Some pages/elements already adapted to mobile - "no change needed" is also a valid answer) ✅ / ❌
-- [ ] 11.1 - General components (sidear, topbar, general page content) - make sure a case with many accounts in topbar doesn't break UI
-- [ ] 11.2 - Dashboard page  (make sure the order of cards is the same on mobile as left-to-right on desktop), floating assistant (make sure a tap on activated assistant deactivates it)
+- [ ] 11.1 - General components (sidear, topbar, general page content) - make sure accounts in topbar are one line and draggable on mobile; pay attention to subcategory suggestions on both dashboard and quick entry (don't seem to work on mobile now)
+- [ ] 11.2 - Dashboard page  (make sure the order of cards is the same on mobile as left-to-right on desktop), floating assistant (make sure a tap on activated assistant deactivates it; also it feels a bit intrusive on mobile now)
 - [ ] 11.3 - Quick Entry page
 - [ ] 11.4 - Chronicles page
 - [ ] 11.5 - Prophecies page
@@ -1957,9 +1959,9 @@ GET /api/stats/insights?date_from=&date_to=&account_id=
 ### Task 7.8: Explicit income/expense control
 
 In both Quick entry page and Record Thy Deed dashboard block, user can provide negative amount to submit gain (rather than expense).
-Instead, logic of "negative means gain" should remain on backend. For user, the system should only accept positive amounts in buth submitting spots; "Expense/Gain" should be a subtle toggle appearing only for unplanned expenses (daily should ONLY accept positive = expense). Submitting scheduled transaction via Future Prophecies dashboard block/Quick entry should only accept positive amounts; final decision on the sign should come from the template of the Prophecy.
+Instead, logic of "negative means gain" should remain on backend. For user, the system should only accept positive amounts in both submitting spots; "Expense/Gain" should be a subtle toggle, Expense chosen by default. Submitting scheduled transaction via Future Prophecies dashboard block/Quick entry should only accept positive amounts; final decision on the sign should come from the template of the Prophecy.
 
-**Mark complete:** `[ ] 7.8 - Explicit income/expense control`
+**Mark complete:** `[x] 7.8 - Explicit income/expense control`
 
 ---
 
@@ -1976,6 +1978,25 @@ Suggest replacements where appropriate before implementing.
 After implementing and before moving to next feature, introduce rule change that will make the agent in future defelopment prioritize reusing components intead of creating new ones.
 
 **Mark complete:** `[ ] 7.9 - Components reuse`
+
+---
+
+### Task 7.10: Browser notifications for pending prophecies
+
+**What:** Notify in browser when pending prophecies are due today or overdue.
+
+**Specs (short):**
+- Add settings fields:
+  - `prediction_notifications_enabled` (bool, default `false`)
+  - `prediction_notifications_time` (`HH:MM`, default `09:00`)
+- Notification scope: all accounts (not tied to selected account).
+- Trigger condition: pending instances where `scheduled_date <= today`.
+- Cadence: foreground browser check every 5 minutes.
+- Delivery format: one summary notification per account (group instances by account).
+- Dedupe: once per instance per day via localStorage keys `spendalot:prediction-notification:<date>:<instance_id>`.
+- Time-change behavior: when notification time changes, clear dedupe keys so same-day retesting is possible.
+
+**Mark complete:** `[x] 7.10 - Browser notifications for predictions about to go overdue / already overdue (with setting: on/off + time)`
 
 ---
 

@@ -13,6 +13,10 @@ class SettingsUpdate(BaseModel):
     show_predictive_non_primary: Optional[bool] = None
     require_payment_method: Optional[bool] = None
     require_subcategory: Optional[bool] = None
+    prediction_notifications_enabled: Optional[bool] = None
+    prediction_notifications_time: Optional[str] = Field(
+        None, pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$"
+    )
     primary_account_id: Optional[int] = None
 
 
@@ -28,6 +32,8 @@ class SettingsResponse(BaseModel):
     show_predictive_non_primary: bool
     require_payment_method: bool
     require_subcategory: bool
+    prediction_notifications_enabled: bool
+    prediction_notifications_time: str
     primary_account_id: Optional[int]
     created_at: datetime
     updated_at: datetime

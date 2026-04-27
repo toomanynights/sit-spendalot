@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -40,6 +40,12 @@ class Settings(Base):
     )
     require_subcategory: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
+    )
+    prediction_notifications_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    prediction_notifications_time: Mapped[str] = mapped_column(
+        String(5), nullable=False, default="09:00"
     )
     primary_account_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("accounts.id"), nullable=True

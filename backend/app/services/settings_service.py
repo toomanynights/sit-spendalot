@@ -21,6 +21,8 @@ def _get_or_create_settings(db: Session) -> Settings:
         show_predictive_non_primary=False,
         require_payment_method=False,
         require_subcategory=False,
+        prediction_notifications_enabled=False,
+        prediction_notifications_time="09:00",
         primary_account_id=None,
     )
     db.add(row)

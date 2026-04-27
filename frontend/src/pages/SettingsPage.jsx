@@ -41,6 +41,11 @@ function coerceNumericField(raw, key) {
   return Math.min(max, Math.max(min, Math.round(n)))
 }
 
+function normalizeTime(raw) {
+  const candidate = String(raw ?? '').trim()
+  return /^\d{2}:\d{2}$/.test(candidate) ? candidate : '09:00'
+}
+
 const EXCLUDED_PAGE_SIZE = 5
 
 export default function SettingsPage() {
@@ -59,6 +64,8 @@ export default function SettingsPage() {
     show_predictive_non_primary: false,
     require_payment_method: false,
     require_subcategory: false,
+    prediction_notifications_enabled: false,
+    prediction_notifications_time: '09:00',
   })
   const [settingsError, setSettingsError] = useState('')
   const [settingsSuccess, setSettingsSuccess] = useState(false)
@@ -84,8 +91,14 @@ export default function SettingsPage() {
       show_predictive_non_primary: settings.show_predictive_non_primary,
       require_payment_method: settings.require_payment_method,
       require_subcategory: settings.require_subcategory,
+      prediction_notifications_enabled: settings.prediction_notifications_enabled ?? false,
+      prediction_notifications_time: settings.prediction_notifications_time || '09:00',
     })
   }, [settings])
+
+  const notificationsSupported = typeof window !== 'undefined' && 'Notification' in window
+  const notificationPermission =
+    notificationsSupported ? Notification.permission : 'unsupported'
 
   const sortedExcluded = useMemo(() => {
     const list = excludedDays ?? []
@@ -135,6 +148,7 @@ export default function SettingsPage() {
       return
     }
     try {
+      const prediction_notifications_time = normalizeTime(form.prediction_notifications_time)
       await updateSettings.mutateAsync({
         prediction_horizon_days,
         rolling_average_days,
@@ -144,6 +158,8 @@ export default function SettingsPage() {
         show_predictive_non_primary: form.show_predictive_non_primary,
         require_payment_method: form.require_payment_method,
         require_subcategory: form.require_subcategory,
+        prediction_notifications_enabled: form.prediction_notifications_enabled,
+        prediction_notifications_time,
       })
       setForm((prev) => ({
         ...prev,
@@ -151,6 +167,7 @@ export default function SettingsPage() {
         rolling_average_days: String(rolling_average_days),
         daily_high_threshold: String(daily_high_threshold),
         daily_low_threshold: String(daily_low_threshold),
+        prediction_notifications_time,
       }))
       setSettingsSuccess(true)
       setTimeout(() => setSettingsSuccess(false), 2500)
@@ -349,8 +366,36 @@ export default function SettingsPage() {
                     />
                     Require subcategory on transactions
                   </label>
+                  <label className="inline-flex items-center gap-2 text-sm text-gold-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-gold"
+                      checked={form.prediction_notifications_enabled}
+                      onChange={(e) => setField('prediction_notifications_enabled', e.target.checked)}
+                    />
+                    Enable browser notifications for pending prophecies
+                  </label>
+                  <Input
+                    id="settings-prediction-notification-time"
+                    label="Notification time"
+                    type="time"
+                    step="60"
+                    value={form.prediction_notifications_time}
+                    onChange={(e) => setField('prediction_notifications_time', e.target.value)}
+                    disabled={!form.prediction_notifications_enabled}
+                  />
                 </div>
 
+                {!notificationsSupported && form.prediction_notifications_enabled ? (
+                  <p className="text-sm text-danger font-crimson">
+                    This browser does not support notification API.
+                  </p>
+                ) : null}
+                {form.prediction_notifications_enabled && notificationPermission === 'denied' ? (
+                  <p className="text-sm text-danger font-crimson">
+                    Browser notifications are blocked. Allow notifications for this site in browser settings.
+                  </p>
+                ) : null}
                 {thresholdWarning ? <p className="text-sm text-danger font-crimson">{thresholdWarning}</p> : null}
                 {settingsError ? <p className="text-sm text-danger font-crimson">{settingsError}</p> : null}
                 {settingsSuccess ? <p className="text-sm text-success font-crimson">Thy settings are recorded!</p> : null}

@@ -14,6 +14,8 @@ export const settingsApi = {
    * show_predictive_non_primary?: boolean,
    * require_payment_method?: boolean,
    * require_subcategory?: boolean,
+ * prediction_notifications_enabled?: boolean,
+ * prediction_notifications_time?: string,
    * primary_account_id?: number | null
    * }} data
    */
