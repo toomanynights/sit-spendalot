@@ -44,10 +44,11 @@ export default function PendingProphecies({ linkedInstanceIds, onAddInstance }) 
   const hasPrev = page > 0
   const hasNext = (page + 1) * PAGE_SIZE < all.length
 
-  function borderClass(scheduledDate) {
-    if (scheduledDate < today) return 'border-l-danger/70'
-    if (scheduledDate === today) return 'border-l-gold/60'
-    return 'border-l-gold/25'
+  function borderClass(amount) {
+    const amountValue = Number(amount)
+    if (amountValue > 0) return 'border-l-danger/70'
+    if (amountValue < 0) return 'border-l-success/70'
+    return 'border-l-gold/40'
   }
 
   return (
@@ -106,7 +107,7 @@ export default function PendingProphecies({ linkedInstanceIds, onAddInstance }) 
                     key={instance.id}
                     className={[
                       'rounded-md bg-black/20 border-l-4 pl-2 pr-2 py-2 flex flex-wrap items-start gap-2',
-                      borderClass(instance.scheduled_date),
+                      borderClass(instance.amount),
                       added ? 'opacity-40' : '',
                     ]
                       .filter(Boolean)

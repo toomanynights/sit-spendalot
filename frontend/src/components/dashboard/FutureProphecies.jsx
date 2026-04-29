@@ -29,6 +29,13 @@ function SkeletonRow() {
 function ProphecyRow({ instance }) {
   const today = todayStr()
   const isOverdue = instance.scheduled_date < today
+  const amountValue = Number(instance.amount)
+  const borderClass =
+    amountValue > 0
+      ? 'border-l-danger/70'
+      : amountValue < 0
+        ? 'border-l-success/70'
+        : 'border-l-gold/40'
 
   const [expanded, setExpanded] = useState(false)
   const [amount, setAmount] = useState('')
@@ -60,7 +67,7 @@ function ProphecyRow({ instance }) {
   }
 
   return (
-    <div className="rounded-md bg-black/20 border-l-4 border-gold/40">
+    <div className={`rounded-md bg-black/20 border-l-4 ${borderClass}`}>
       {/* Main row */}
       <div className="flex items-start gap-2 px-3 py-2.5">
         <div className="flex-1 min-w-0">

@@ -92,7 +92,7 @@
 - [ ] 9.7 - make "Show predictive features on non-primary accounts" setting actualy work (dashboard + analytics with the same logic as in dashboard)
 - [ ] 9.8 - Implement PWA support
 - [ ] 9.9 - Optional normalized subcategory model (`subcategory_id`) with backward-compatible text fallback
-- [ ] 9.10 - Color-code (expenses vs earnings) "Future Prophecies" block (Dashboard) + Prophecies Awaiting (Quick entry)
+- [x] 9.10 - Color-code (expenses vs earnings) "Future Prophecies" block (Dashboard) + Prophecies Awaiting (Quick entry)
 
 ### Phase 10: Rolling predictions ✅ / ❌
 - [ ] 10.0 - Feature initiation (see specs)
@@ -2203,6 +2203,28 @@ A few things to start off (consider them to be discussion points rather than ord
   - optionally resolve to existing/new subcategory entities.
 
 **Mark complete:** `[ ] 9.9 - Optional normalized subcategory model`
+
+---
+
+### Task 9.10: Color-code Future Prophecies / Prophecies Awaiting
+
+**What:** Add income/expense color-coding in prophecy list blocks to match transaction semantics.
+
+**Specs:**
+- Scope:
+  - Dashboard: `Future Prophecies` block
+  - Quick Entry: `Prophecies Awaiting` block
+- Color rule (based on instance `amount` sign):
+  - `amount > 0` (expense) -> `danger` styling
+  - `amount < 0` (earning) -> `success` styling
+- Visual target:
+  - color the **left row border** (Chronicles-style cue), not the whole row and not the overdue badge.
+- Overdue handling:
+  - keep existing overdue pill/badge unchanged; no extra overdue color layer.
+- Consistency:
+  - apply the same mapping and border-style intent in both blocks.
+
+**Mark complete:** `[x] 9.10 - Color-code (expenses vs earnings) "Future Prophecies" block (Dashboard) + Prophecies Awaiting (Quick entry)`
 
 ---
 
