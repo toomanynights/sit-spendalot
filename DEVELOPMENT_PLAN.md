@@ -94,7 +94,7 @@
 - [ ] 9.9 - Optional normalized subcategory model (`subcategory_id`) with backward-compatible text fallback
 - [x] 9.10 - Color-code (expenses vs earnings) "Future Prophecies" block (Dashboard) + Prophecies Awaiting (Quick entry)
 - [ ] 9.11 - Category management (reassign/remove subcategory parent; allow renaming subcategories; change subcategory text in transactions when subcategory is renamed...)
-- [ ] 9.12 - Treasury layout: introduce scrollong when >5 items
+- [x] 9.12 - Treasury layout: introduce scrollong when >5 items
 - [ ] 9.13 - Column layout is not pretty, especially when one of the cards is too tall
 - [ ] 9.14 - allow rescheduling an instance, avoiding its regeneration despite changed date
 
@@ -2245,6 +2245,27 @@ A few things to start off (consider them to be discussion points rather than ord
   - apply the same mapping and border-style intent in both blocks.
 
 **Mark complete:** `[x] 9.10 - Color-code (expenses vs earnings) "Future Prophecies" block (Dashboard) + Prophecies Awaiting (Quick entry)`
+
+---
+
+### Task 9.12: Treasury layout - scrolling for long lists
+
+**What:** Keep Treasury cards compact by limiting visible list height and enabling in-card scroll for longer collections.
+
+**Specs:**
+- Apply to list-heavy blocks in Treasury:
+  - `Accounts`
+  - `Categories`
+  - `Payment methods`
+- Behavior:
+  - show up to approximately 5 row items naturally;
+  - when content exceeds that height, vertical scrolling appears inside the card body.
+- UX constraints:
+  - do not change row semantics or actions;
+  - preserve existing card order/grid layout;
+  - keep visual styling consistent with medieval theme (subtle gold scrollbar treatment).
+
+**Mark complete:** `[x] 9.12 - Treasury layout: introduce scrollong when >5 items`
 
 ---
 
