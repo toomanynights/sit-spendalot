@@ -72,7 +72,7 @@
 - [x] 7.8 - Explicit income/expense control in Record Thy Deed, Quick entry (and add default type to categories). 
 - [ ] 7.9 - Components reuse
 - [x] 7.10 - Browser notifications for predictions about to go overdue / already overdue (with setting: on/off + time)
-- [ ] 7.11 - Per-account checkup vs. actual balance
+- [x] 7.11 - Per-account checkup vs. actual balance
 - [ ] 7.12 - In topbar, add optional attention dot in case account hasn't been checked up within specified period; if it has unconfirmed today/past prophecies
 
 ### Phase 8: Deployment (some may already be implemented - check) ✅ / ❌
@@ -2008,15 +2008,78 @@ After implementing and before moving to next feature, introduce rule change that
 
 ### Task 7.11: Per-account checkup vs. actual balance
 
-**Specs (draft):**
- - in This Day's Fortune: add buttons on the right from the sum to correct/transfer/checkup
- - in Treasury: checkup button; 
- - in Treasury: make accounts expandable with the list of checkups. 
+**What:** Add a "checkup" workflow — periodic per-payment-method reconciliation that records reality vs. ledger, optionally creates a correction transaction, and warns when an account hasn't been reconciled in too long.
 
-Checkup is a form with current balance and a separate field for each payment method; sum of those fields = corrected balance, show it pre-commit with a helping tooltip exxplaining what does the difference mean; can use regular correction method to submit. in This Day's Fortune add alert if account not checked up within customizeable period. In Settings add checkup notification period.
+**Concept:**
+- A checkup captures per-payment-method actual amounts at a point in time, plus a residual "Sundry coin" bucket for cash / unattributed money.
+- Reported total = Σ of those fields. Difference = ledger − reported (positive = ledger overstates reality, negative = ledger understates it).
+- Submit:
+  - If diff ≠ 0 → reuse `apply_balance_correction` to create a `correction` transaction targeting `target_balance = reported_total`.
+  - Always insert a `account_checkups` row + per-PM breakdowns for the audit trail (even when diff = 0).
+- Append-only in v1 — fix mistakes by submitting a fresh checkup.
 
+**Data model:**
+- `account_checkups` (id, account_id FK, checkup_date, ledger_balance, reported_balance, correction_transaction_id FK transactions ON DELETE SET NULL nullable, note, created_at).
+- `account_checkup_breakdowns` (id, checkup_id FK CASCADE, payment_method_id FK ON DELETE SET NULL nullable, payment_method_name_snapshot, amount). `payment_method_id IS NULL` represents the "Sundry coin" residual bucket.
+- `settings.checkup_notification_days` (int, default 30, range 1-365) — global threshold for the overdue-checkup banner/notification.
+- `settings.checkup_notifications_enabled` (bool, default `false`). Reuses existing `prediction_notifications_time` as the daily firing clock.
 
-**Mark complete:** `[x] 7.11 - Per-account checkup vs. actual balance
+**API:**
+- `GET /api/accounts/{id}/checkups` → list (newest first) with breakdowns inline; each row exposes `correction_amount` (= ledger − reported) for the history view.
+- `POST /api/accounts/{id}/checkups` body:
+  ```json
+  {
+    "breakdowns": [
+      {"payment_method_id": 1, "amount": "120.50"},
+      {"payment_method_id": null, "amount": "45.00"}
+    ],
+    "note": "string or null"
+  }
+  ```
+  Service:
+  1. Resolve account, snapshot ledger balance via `_compute_balance`.
+  2. `reported_balance = sum(breakdowns.amount)` (empty/missing fields treated as 0).
+  3. If `reported_balance != ledger_balance`, call `apply_balance_correction` with `target_balance = reported_balance`, today's date, prefixed note `"Checkup: <user note or 'Reconciliation'>"`. Capture the resulting correction transaction id.
+  4. Insert `account_checkups` + breakdown rows (snapshotting PM names so renames/deletes don't ruin history).
+- Extend `/api/stats/today` response with `last_checkup_date: date | null` and `days_since_last_checkup: int | null` (null when never reconciled).
+- Importer backup/restore/nuke: include `account_checkups` and `account_checkup_breakdowns` in `BACKUP_TABLES` (breakdowns after checkups due to FK).
+
+**Frontend — TodayFortune:**
+- Add three icon buttons aligned right of the "Current Balance" row:
+  - `Scale` → existing balance correction modal
+  - `ArrowLeftRight` → existing transfer modal
+  - `ClipboardCheck` → new checkup modal
+- Above "Today's Outgoings", if `days_since_last_checkup === null || > settings.checkup_notification_days`, render an amber banner: *"Hark! It hath been N days since {accountName} was reconciled. A checkup is due."* (or "never reconciled" wording).
+
+**Frontend — CheckupModal (shared between dashboard and treasury):**
+- Header: account name.
+- Read-only display: ledger balance (refreshable).
+- One row per global payment method (input with payment_method_id) + a trailing **"Sundry coin"** row (`payment_method_id: null`). Empty fields treated as 0.
+- Live-computed reported total + difference, with a tooltip explaining the sign:
+  - positive diff = ledger thinks you have more spending than reality (so a correction will reduce your tracked balance toward reality);
+  - negative diff = ledger missed income / refunds.
+- Optional note field.
+- Submit `Reconcile the books` button. Disabled if every input is empty.
+- On success: invalidate `accounts`, `stats`, `forecast`, and the per-account `checkups` query.
+
+**Frontend — Treasury:**
+- New `ClipboardCheck` icon button per account row → opens the checkup modal.
+- New chevron toggle on each account row that expands an inline history list (read-only): each entry shows date, ledger, reported, diff (green if 0, amber otherwise), and optional note. Empty state: *"No reckonings recorded yet."*
+- Styling lives in `treasury.css`; no inline styles.
+
+**Frontend — SettingsPage:**
+- Add **"Checkup notification period (days)"** numeric field next to other thresholds (range 1-365, default 30).
+- Add **"Send browser notifications when a checkup is due"** checkbox. Reuses `prediction_notifications_time` (clarify in label that the time field controls both kinds of notifications).
+
+**Frontend — Notification watcher:**
+- Rename `PredictionNotificationWatcher` → `NotificationWatcher` and extend:
+  - At/after `prediction_notifications_time`, in addition to existing prediction logic, query accounts + `today` stats per account, compute days-since-last-checkup, and fire one notification per overdue/never-reconciled account with `checkup_notifications_enabled` on.
+  - Dedupe key `spendalot:checkup-notification:<date>:<account_id>` (one fire per account per day).
+  - Clearing dedupe keys when `prediction_notifications_time` changes covers checkup keys too.
+
+**Migration:** new revision `add_account_checkups`, down_revision = `7d4c2e1b8a90`, creating both new tables and adding the two settings columns (NOT NULL with server defaults, then drop server defaults to match the established pattern).
+
+**Mark complete:** `[x] 7.11 - Per-account checkup vs. actual balance`
 
 ---
 

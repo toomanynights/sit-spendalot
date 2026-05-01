@@ -28,7 +28,7 @@ from app.schemas.stats import (
     SubcategorySpendingRow,
     TodayStatsResponse,
 )
-from app.services import forecast_service
+from app.services import account_checkup_service, forecast_service
 
 
 def _sum_type(db: Session, account_id: int, today: date, transaction_type: str) -> Decimal:
@@ -68,6 +68,13 @@ def get_today_stats(db: Session, *, account_id: Optional[int] = None) -> TodaySt
     prediction_horizon_days = settings_row.prediction_horizon_days if settings_row else 90
     daily_high_threshold = settings_row.daily_high_threshold if settings_row else 110
     daily_low_threshold = settings_row.daily_low_threshold if settings_row else 90
+    checkup_notification_days = (
+        settings_row.checkup_notification_days if settings_row else 30
+    )
+
+    last_checkup_date, days_since_last_checkup = (
+        account_checkup_service.get_last_checkup_info(db, resolved_account_id)
+    )
 
     return TodayStatsResponse(
         account_id=resolved_account_id,
@@ -80,6 +87,9 @@ def get_today_stats(db: Session, *, account_id: Optional[int] = None) -> TodaySt
         prediction_horizon_days=prediction_horizon_days,
         daily_high_threshold=daily_high_threshold,
         daily_low_threshold=daily_low_threshold,
+        last_checkup_date=last_checkup_date,
+        days_since_last_checkup=days_since_last_checkup,
+        checkup_notification_days=checkup_notification_days,
     )
 
 

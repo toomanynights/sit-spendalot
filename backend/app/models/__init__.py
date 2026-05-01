@@ -1,4 +1,5 @@
 from app.models.account import Account
+from app.models.account_checkup import AccountCheckup, AccountCheckupBreakdown
 from app.models.category import Category
 from app.models.excluded_day import ExcludedDay
 from app.models.import_mapping import ImportMapping
@@ -10,6 +11,8 @@ from app.models.transfer import Transfer
 
 __all__ = [
     "Account",
+    "AccountCheckup",
+    "AccountCheckupBreakdown",
     "Category",
     "ExcludedDay",
     "ImportMapping",

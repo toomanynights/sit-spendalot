@@ -17,6 +17,8 @@ class SettingsUpdate(BaseModel):
     prediction_notifications_time: Optional[str] = Field(
         None, pattern=r"^(?:[01]\d|2[0-3]):[0-5]\d$"
     )
+    checkup_notifications_enabled: Optional[bool] = None
+    checkup_notification_days: Optional[int] = Field(None, ge=1, le=365)
     primary_account_id: Optional[int] = None
 
 
@@ -34,6 +36,8 @@ class SettingsResponse(BaseModel):
     require_subcategory: bool
     prediction_notifications_enabled: bool
     prediction_notifications_time: str
+    checkup_notifications_enabled: bool
+    checkup_notification_days: int
     primary_account_id: Optional[int]
     created_at: datetime
     updated_at: datetime

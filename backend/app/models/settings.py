@@ -47,6 +47,12 @@ class Settings(Base):
     prediction_notifications_time: Mapped[str] = mapped_column(
         String(5), nullable=False, default="09:00"
     )
+    checkup_notifications_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    checkup_notification_days: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=30
+    )
     primary_account_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("accounts.id"), nullable=True
     )

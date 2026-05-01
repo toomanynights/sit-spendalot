@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CalendarX2, ChevronLeft, ChevronRight, Settings, Trash2 } from 'lucide-react'
+import { Bell, CalendarX2, ChevronLeft, ChevronRight, Settings, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import PageContextHeader from '../components/layout/PageContextHeader'
 import { Card, CardBody, CardHeader } from '../components/ui/Card'
@@ -22,6 +22,7 @@ const NUMERIC_DEFAULTS = {
   rolling_average_days: 30,
   daily_high_threshold: 110,
   daily_low_threshold: 90,
+  checkup_notification_days: 30,
 }
 
 const LIMITS = {
@@ -29,6 +30,7 @@ const LIMITS = {
   rolling_average_days: { min: 3, max: 180 },
   daily_high_threshold: { min: 80, max: 300 },
   daily_low_threshold: { min: 50, max: 150 },
+  checkup_notification_days: { min: 1, max: 365 },
 }
 
 function coerceNumericField(raw, key) {
@@ -64,11 +66,18 @@ export default function SettingsPage() {
     show_predictive_non_primary: false,
     require_payment_method: false,
     require_subcategory: false,
-    prediction_notifications_enabled: false,
-    prediction_notifications_time: '09:00',
   })
   const [settingsError, setSettingsError] = useState('')
   const [settingsSuccess, setSettingsSuccess] = useState(false)
+
+  const [notifForm, setNotifForm] = useState({
+    prediction_notifications_enabled: false,
+    prediction_notifications_time: '09:00',
+    checkup_notifications_enabled: false,
+    checkup_notification_days: String(NUMERIC_DEFAULTS.checkup_notification_days),
+  })
+  const [notifError, setNotifError] = useState('')
+  const [notifSuccess, setNotifSuccess] = useState(false)
 
   const [excludedDate, setExcludedDate] = useState(todayStr())
   const [excludedReason, setExcludedReason] = useState('')
@@ -91,8 +100,14 @@ export default function SettingsPage() {
       show_predictive_non_primary: settings.show_predictive_non_primary,
       require_payment_method: settings.require_payment_method,
       require_subcategory: settings.require_subcategory,
+    })
+    setNotifForm({
       prediction_notifications_enabled: settings.prediction_notifications_enabled ?? false,
       prediction_notifications_time: settings.prediction_notifications_time || '09:00',
+      checkup_notifications_enabled: settings.checkup_notifications_enabled ?? false,
+      checkup_notification_days: String(
+        settings.checkup_notification_days ?? NUMERIC_DEFAULTS.checkup_notification_days
+      ),
     })
   }, [settings])
 
@@ -133,6 +148,10 @@ export default function SettingsPage() {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  function setNotifField(key, value) {
+    setNotifForm((prev) => ({ ...prev, [key]: value }))
+  }
+
   async function handleSaveSettings(e) {
     e.preventDefault()
     setSettingsError('')
@@ -148,7 +167,6 @@ export default function SettingsPage() {
       return
     }
     try {
-      const prediction_notifications_time = normalizeTime(form.prediction_notifications_time)
       await updateSettings.mutateAsync({
         prediction_horizon_days,
         rolling_average_days,
@@ -158,8 +176,6 @@ export default function SettingsPage() {
         show_predictive_non_primary: form.show_predictive_non_primary,
         require_payment_method: form.require_payment_method,
         require_subcategory: form.require_subcategory,
-        prediction_notifications_enabled: form.prediction_notifications_enabled,
-        prediction_notifications_time,
       })
       setForm((prev) => ({
         ...prev,
@@ -167,12 +183,36 @@ export default function SettingsPage() {
         rolling_average_days: String(rolling_average_days),
         daily_high_threshold: String(daily_high_threshold),
         daily_low_threshold: String(daily_low_threshold),
-        prediction_notifications_time,
       }))
       setSettingsSuccess(true)
       setTimeout(() => setSettingsSuccess(false), 2500)
     } catch (err) {
       setSettingsError(err?.message || 'Hark! Settings could not be saved.')
+    }
+  }
+
+  async function handleSaveNotifications(e) {
+    e.preventDefault()
+    setNotifError('')
+    setNotifSuccess(false)
+    try {
+      const prediction_notifications_time = normalizeTime(notifForm.prediction_notifications_time)
+      const checkup_notification_days = coerceNumericField(notifForm.checkup_notification_days, 'checkup_notification_days')
+      await updateSettings.mutateAsync({
+        prediction_notifications_enabled: notifForm.prediction_notifications_enabled,
+        prediction_notifications_time,
+        checkup_notifications_enabled: notifForm.checkup_notifications_enabled,
+        checkup_notification_days,
+      })
+      setNotifForm((prev) => ({
+        ...prev,
+        prediction_notifications_time,
+        checkup_notification_days: String(checkup_notification_days),
+      }))
+      setNotifSuccess(true)
+      setTimeout(() => setNotifSuccess(false), 2500)
+    } catch (err) {
+      setNotifError(err?.message || 'Hark! Notification settings could not be saved.')
     }
   }
 
@@ -366,36 +406,8 @@ export default function SettingsPage() {
                     />
                     Require subcategory on transactions
                   </label>
-                  <label className="inline-flex items-center gap-2 text-sm text-gold-muted cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-gold"
-                      checked={form.prediction_notifications_enabled}
-                      onChange={(e) => setField('prediction_notifications_enabled', e.target.checked)}
-                    />
-                    Enable browser notifications for pending prophecies
-                  </label>
-                  <Input
-                    id="settings-prediction-notification-time"
-                    label="Notification time"
-                    type="time"
-                    step="60"
-                    value={form.prediction_notifications_time}
-                    onChange={(e) => setField('prediction_notifications_time', e.target.value)}
-                    disabled={!form.prediction_notifications_enabled}
-                  />
                 </div>
 
-                {!notificationsSupported && form.prediction_notifications_enabled ? (
-                  <p className="text-sm text-danger font-crimson">
-                    This browser does not support notification API.
-                  </p>
-                ) : null}
-                {form.prediction_notifications_enabled && notificationPermission === 'denied' ? (
-                  <p className="text-sm text-danger font-crimson">
-                    Browser notifications are blocked. Allow notifications for this site in browser settings.
-                  </p>
-                ) : null}
                 {thresholdWarning ? <p className="text-sm text-danger font-crimson">{thresholdWarning}</p> : null}
                 {settingsError ? <p className="text-sm text-danger font-crimson">{settingsError}</p> : null}
                 {settingsSuccess ? <p className="text-sm text-success font-crimson">Thy settings are recorded!</p> : null}
@@ -406,6 +418,78 @@ export default function SettingsPage() {
                   </Button>
                   {settingsLoading ? <span className="text-sm text-gold-muted font-crimson">Loading current values...</span> : null}
                 </div>
+              </form>
+            </CardBody>
+          </Card>
+
+          <Card shimmer>
+            <CardHeader icon={<Bell size={18} />} title="Notifications" />
+            <CardBody>
+              <form onSubmit={handleSaveNotifications} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    id="settings-checkup-notification-days"
+                    label="Checkup reminder period (days)"
+                    type="number"
+                    min="1"
+                    max="365"
+                    placeholder={String(NUMERIC_DEFAULTS.checkup_notification_days)}
+                    value={notifForm.checkup_notification_days}
+                    onChange={(e) => setNotifField('checkup_notification_days', e.target.value)}
+                  />
+                  <Input
+                    id="settings-prediction-notification-time"
+                    label="Daily notification time"
+                    type="time"
+                    step="60"
+                    value={notifForm.prediction_notifications_time}
+                    onChange={(e) => setNotifField('prediction_notifications_time', e.target.value)}
+                    disabled={
+                      !notifForm.prediction_notifications_enabled &&
+                      !notifForm.checkup_notifications_enabled
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label className="inline-flex items-center gap-2 text-sm text-gold-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-gold"
+                      checked={notifForm.prediction_notifications_enabled}
+                      onChange={(e) => setNotifField('prediction_notifications_enabled', e.target.checked)}
+                    />
+                    Browser notifications for pending prophecies
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm text-gold-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-gold"
+                      checked={notifForm.checkup_notifications_enabled}
+                      onChange={(e) => setNotifField('checkup_notifications_enabled', e.target.checked)}
+                    />
+                    Browser notifications when a checkup is overdue
+                  </label>
+                </div>
+
+                {!notificationsSupported &&
+                (notifForm.prediction_notifications_enabled || notifForm.checkup_notifications_enabled) ? (
+                  <p className="text-sm text-danger font-crimson">
+                    This browser does not support the notification API.
+                  </p>
+                ) : null}
+                {(notifForm.prediction_notifications_enabled || notifForm.checkup_notifications_enabled) &&
+                notificationPermission === 'denied' ? (
+                  <p className="text-sm text-danger font-crimson">
+                    Browser notifications are blocked. Allow notifications for this site in browser settings.
+                  </p>
+                ) : null}
+                {notifError ? <p className="text-sm text-danger font-crimson">{notifError}</p> : null}
+                {notifSuccess ? <p className="text-sm text-success font-crimson">Notification settings saved!</p> : null}
+
+                <Button type="submit" variant="primary" disabled={updateSettings.isPending || settingsLoading}>
+                  {updateSettings.isPending ? 'Saving...' : 'Save notifications'}
+                </Button>
               </form>
             </CardBody>
           </Card>

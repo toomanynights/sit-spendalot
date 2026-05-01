@@ -4,6 +4,7 @@ import {
   ArrowLeftRight,
   ChevronDown,
   ChevronRight,
+  ClipboardCheck,
   Crown,
   Landmark,
   Pencil,
@@ -14,10 +15,13 @@ import {
 } from 'lucide-react'
 import PageContextHeader from '../components/layout/PageContextHeader'
 import { Button } from '../components/ui/Button'
+import BalanceCorrectionModal from '../components/BalanceCorrectionModal'
+import TransferModal from '../components/TransferModal'
+import CheckupModal from '../components/CheckupModal'
+import AccountCheckupHistory from '../components/AccountCheckupHistory'
 import { accountsApi } from '../api/accounts'
 import { categoriesApi } from '../api/categories'
 import { paymentMethodsApi } from '../api/paymentMethods'
-import { transfersApi } from '../api/transfers'
 import { ApiError } from '../api/client'
 import { formatSigned } from '../utils/format'
 import './treasury.css'
@@ -161,194 +165,6 @@ function AccountFormModal({ mode, account, paymentMethods, onClose, onAfterSave 
   )
 }
 
-function BalanceCorrectionModal({ account, onClose, onSuccess }) {
-  const [currentBalance, setCurrentBalance] = useState(account?.current_balance != null ? String(account.current_balance) : '')
-  const [targetBalance, setTargetBalance] = useState('')
-  const [correctionDate, setCorrectionDate] = useState(() => new Date().toISOString().split('T')[0])
-  const [note, setNote] = useState('')
-  const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  const refreshBalance = useCallback(async () => {
-    if (!account?.id) return
-    try {
-      const fresh = await accountsApi.get(account.id)
-      setCurrentBalance(String(fresh.current_balance))
-    } catch {
-      // keep previous
-    }
-  }, [account?.id])
-
-  useEffect(() => {
-    refreshBalance()
-  }, [refreshBalance])
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setSaving(true)
-    try {
-      await accountsApi.balanceCorrection(account.id, {
-        target_balance: Number(targetBalance),
-        correction_date: correctionDate,
-        note: note.trim() || undefined,
-      })
-      await onSuccess()
-      onClose()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Correction failed.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-lg border border-gold/30 shadow-card bg-brown-dark">
-        <div className="card-header">
-          <h3 className="card-title">Balance correction - {account.name}</h3>
-          <Button variant="ghost" className="ml-auto" onClick={onClose} aria-label="Close">
-            <X size={18} />
-          </Button>
-        </div>
-        <form onSubmit={handleSubmit} className="card-body space-y-4">
-          <div>
-            <span className="input-label">Current balance</span>
-            <p className="text-lg text-gold font-cinzel">{formatSigned(currentBalance)}</p>
-            <Button type="button" variant="ghost" className="text-xs mt-1" onClick={() => refreshBalance()}>
-              Refresh from ledger
-            </Button>
-          </div>
-          <label className="block">
-            <span className="input-label">Target balance</span>
-            <input
-              type="number"
-              step="0.01"
-              className="input"
-              value={targetBalance}
-              onChange={(e) => setTargetBalance(e.target.value)}
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="input-label">Correction date</span>
-            <input
-              type="date"
-              className="input"
-              value={correctionDate}
-              onChange={(e) => setCorrectionDate(e.target.value)}
-              required
-            />
-          </label>
-          <label className="block">
-            <span className="input-label">Note (optional)</span>
-            <input className="input" value={note} onChange={(e) => setNote(e.target.value)} maxLength={255} />
-          </label>
-          {error ? <p className="text-sm text-danger font-crimson">{error}</p> : null}
-          <div className="flex gap-2">
-            <Button type="submit" variant="primary" disabled={saving}>
-              Apply correction
-            </Button>
-            <Button type="button" variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function TransferModal({ fromAccount, accounts, onClose, onSuccess }) {
-  const others = useMemo(() => accounts.filter((a) => a.id !== fromAccount.id), [accounts, fromAccount.id])
-  const [toId, setToId] = useState(others[0]?.id ? String(others[0].id) : '')
-  const [amount, setAmount] = useState('')
-  const [transferDate, setTransferDate] = useState(() => new Date().toISOString().split('T')[0])
-  const [description, setDescription] = useState('')
-  const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setSaving(true)
-    try {
-      await transfersApi.create({
-        from_account_id: fromAccount.id,
-        to_account_id: Number(toId),
-        amount: Number(amount),
-        transfer_date: transferDate,
-        description: description.trim() || undefined,
-      })
-      await onSuccess()
-      onClose()
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Transfer failed.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  if (!others.length) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-        <div className="w-full max-w-md rounded-lg border border-gold/30 shadow-card bg-brown-dark p-6">
-          <p className="text-parchment font-crimson mb-4">Thou needest at least two accounts to transfer coin.</p>
-          <Button variant="primary" onClick={onClose}>
-            Understood
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-lg border border-gold/30 shadow-card bg-brown-dark">
-        <div className="card-header">
-          <h3 className="card-title">Transfer from {fromAccount.name}</h3>
-          <Button variant="ghost" className="ml-auto" onClick={onClose} aria-label="Close">
-            <X size={18} />
-          </Button>
-        </div>
-        <form className="card-body space-y-4" onSubmit={handleSubmit}>
-          <label className="block">
-            <span className="input-label">To account</span>
-            <select className="input" value={toId} onChange={(e) => setToId(e.target.value)} required>
-              {others.map((a) => (
-                <option key={a.id} value={String(a.id)}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="input-label">Amount</span>
-            <input type="number" step="0.01" min="0.01" className="input" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-          </label>
-          <label className="block">
-            <span className="input-label">Transfer date</span>
-            <input type="date" className="input" value={transferDate} onChange={(e) => setTransferDate(e.target.value)} required />
-          </label>
-          <label className="block">
-            <span className="input-label">Description (optional)</span>
-            <input className="input" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={255} />
-          </label>
-          {error ? <p className="text-sm text-danger font-crimson">{error}</p> : null}
-          <div className="flex gap-2">
-            <Button type="submit" variant="primary" disabled={saving}>
-              Record transfer
-            </Button>
-            <Button type="button" variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
 function NamePromptModal({ title, initialName, onClose, onSave, noun, onAfterSave }) {
   const [value, setValue] = useState(initialName || '')
   const [error, setError] = useState('')
@@ -426,10 +242,12 @@ export default function TreasuryPage() {
 
   const [categoryType, setCategoryType] = useState('daily')
   const [expandedCats, setExpandedCats] = useState(() => new Set())
+  const [expandedAccounts, setExpandedAccounts] = useState(() => new Set())
 
   const [accountModal, setAccountModal] = useState(null)
   const [correctionAccount, setCorrectionAccount] = useState(null)
   const [transferFrom, setTransferFrom] = useState(null)
+  const [checkupAccount, setCheckupAccount] = useState(null)
   const [categoryModal, setCategoryModal] = useState(null)
   const [newCategoryOpen, setNewCategoryOpen] = useState(false)
   const [pmModal, setPmModal] = useState(null)
@@ -498,6 +316,15 @@ export default function TreasuryPage() {
     })
   }
 
+  function toggleAccountExpand(id) {
+    setExpandedAccounts((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   async function handleDeleteAccount(acc) {
     if (acc.is_primary) return
     if (!window.confirm(`Delete account "${acc.name}"? This cannot be undone.`)) return
@@ -554,40 +381,65 @@ export default function TreasuryPage() {
               <p className="text-gold-muted font-crimson text-sm">No accounts yet - create thy first coffer.</p>
             ) : (
               <div className="treasury-scroll-list space-y-3">
-                {sortedAccounts.map((acc) => (
-                  <div key={acc.id} className="treasury-row">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {acc.is_primary ? <Crown size={16} className="text-gold shrink-0" aria-label="Primary" /> : null}
-                        <span className="text-parchment font-semibold font-cinzel">{acc.name}</span>
-                        <span className="treasury-row-meta">({acc.account_type})</span>
+                {sortedAccounts.map((acc) => {
+                  const open = expandedAccounts.has(acc.id)
+                  return (
+                    <div key={acc.id} className="treasury-row treasury-account-row">
+                      {/* Left: account info */}
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {acc.is_primary ? <Crown size={16} className="text-gold shrink-0" aria-label="Primary" /> : null}
+                          <span className="text-parchment font-semibold font-cinzel">{acc.name}</span>
+                          <span className="treasury-row-meta">({acc.account_type})</span>
+                        </div>
+                        <p className="text-gold mt-1 font-cinzel">Balance {formatSigned(acc.current_balance)}</p>
+                        <button
+                          type="button"
+                          className="treasury-account-expand"
+                          onClick={() => toggleAccountExpand(acc.id)}
+                          aria-expanded={open}
+                        >
+                          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          {open ? 'Hide reckonings' : 'Show reckonings'}
+                        </button>
                       </div>
-                      <p className="text-gold mt-1 font-cinzel">Balance {formatSigned(acc.current_balance)}</p>
-                    </div>
-                    <div className="treasury-actions">
-                      <Button type="button" variant="ghost" className="!px-2" title="Edit" onClick={() => setAccountModal({ mode: 'edit', account: acc })}>
-                        <Pencil size={18} />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="!px-2"
-                        title="Balance correction"
-                        onClick={() => setCorrectionAccount(acc)}
-                      >
-                        <Scale size={18} />
-                      </Button>
-                      <Button type="button" variant="ghost" className="!px-2" title="Transfer" onClick={() => setTransferFrom(acc)}>
-                        <ArrowLeftRight size={18} />
-                      </Button>
-                      {!acc.is_primary ? (
-                        <Button type="button" variant="ghost" className="!px-2 text-danger/80 hover:text-danger" title="Delete" onClick={() => handleDeleteAccount(acc)}>
-                          <Trash2 size={18} />
+                      {/* Right: action buttons */}
+                      <div className="treasury-actions">
+                        <Button type="button" variant="ghost" className="!px-2" title="Edit" onClick={() => setAccountModal({ mode: 'edit', account: acc })}>
+                          <Pencil size={18} />
                         </Button>
-                      ) : null}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="!px-2"
+                          title="Balance correction"
+                          onClick={() => setCorrectionAccount(acc)}
+                        >
+                          <Scale size={18} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="!px-2"
+                          title="Reconcile (checkup)"
+                          onClick={() => setCheckupAccount(acc)}
+                        >
+                          <ClipboardCheck size={18} />
+                        </Button>
+                        <Button type="button" variant="ghost" className="!px-2" title="Transfer" onClick={() => setTransferFrom(acc)}>
+                          <ArrowLeftRight size={18} />
+                        </Button>
+                        {!acc.is_primary ? (
+                          <Button type="button" variant="ghost" className="!px-2 text-danger/80 hover:text-danger" title="Delete" onClick={() => handleDeleteAccount(acc)}>
+                            <Trash2 size={18} />
+                          </Button>
+                        ) : null}
+                      </div>
+                      {/* History — full-width row when expanded (flex-wrap kicks it below) */}
+                      {open ? <AccountCheckupHistory accountId={acc.id} expanded /> : null}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -725,6 +577,14 @@ export default function TreasuryPage() {
 
       {transferFrom ? (
         <TransferModal fromAccount={transferFrom} accounts={accounts} onClose={() => setTransferFrom(null)} onSuccess={refreshAfterMutation} />
+      ) : null}
+
+      {checkupAccount ? (
+        <CheckupModal
+          account={checkupAccount}
+          onClose={() => setCheckupAccount(null)}
+          onSuccess={refreshAfterMutation}
+        />
       ) : null}
 
       {categoryModal ? (

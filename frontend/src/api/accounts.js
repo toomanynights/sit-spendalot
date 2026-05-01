@@ -23,4 +23,20 @@ export const accountsApi = {
    */
   balanceCorrection: (id, data) =>
     api.post(`/accounts/${id}/balance-correction`, data),
+
+  /**
+   * List historical reconciliations (newest first) for this account.
+   * @param {number} id
+   */
+  listCheckups: (id) =>
+    api.get(`/accounts/${id}/checkups`),
+
+  /**
+   * Submit a per-payment-method checkup. Backend creates a correction tx
+   * automatically when reported total differs from the ledger balance.
+   * @param {number} id
+   * @param {{ breakdowns: Array<{payment_method_id: number|null, amount: number|string}>, note?: string }} data
+   */
+  createCheckup: (id, data) =>
+    api.post(`/accounts/${id}/checkups`, data),
 }

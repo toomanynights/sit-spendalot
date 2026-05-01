@@ -8,8 +8,9 @@ from app.schemas.account import (
     AccountUpdate,
     BalanceCorrectionCreate,
 )
+from app.schemas.account_checkup import CheckupCreate, CheckupResponse
 from app.services.auth_service import require_auth
-from app.services import account_service
+from app.services import account_checkup_service, account_service
 
 router = APIRouter(
     prefix="/api/accounts",
@@ -52,3 +53,19 @@ def balance_correction(
     db: Session = Depends(get_db),
 ):
     return account_service.apply_balance_correction(db, account_id, data)
+
+
+@router.get("/{account_id}/checkups", response_model=list[CheckupResponse])
+def list_checkups(account_id: int, db: Session = Depends(get_db)):
+    return account_checkup_service.list_checkups(db, account_id)
+
+
+@router.post(
+    "/{account_id}/checkups", response_model=CheckupResponse, status_code=201
+)
+def create_checkup(
+    account_id: int,
+    data: CheckupCreate,
+    db: Session = Depends(get_db),
+):
+    return account_checkup_service.create_checkup(db, account_id, data)

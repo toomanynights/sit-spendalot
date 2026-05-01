@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/layout/Layout'
-import PredictionNotificationWatcher from './components/layout/PredictionNotificationWatcher'
+import NotificationWatcher from './components/layout/NotificationWatcher'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AccountProvider } from './contexts/AccountContext'
 
@@ -18,7 +18,7 @@ function ProtectedLayout() {
   return (
     <ProtectedRoute>
       <AccountProvider>
-        <PredictionNotificationWatcher />
+        <NotificationWatcher />
         <Layout />
       </AccountProvider>
     </ProtectedRoute>

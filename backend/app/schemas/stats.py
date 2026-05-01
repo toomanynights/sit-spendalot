@@ -23,6 +23,10 @@ class TodayStatsResponse(BaseModel):
     prediction_horizon_days: int = 90
     daily_high_threshold: int = 110
     daily_low_threshold: int = 90
+    # Per-account checkup state — null when the account has never been reconciled.
+    last_checkup_date: date | None = None
+    days_since_last_checkup: int | None = None
+    checkup_notification_days: int = 30
 
 
 class CategorySpendingRow(BaseModel):

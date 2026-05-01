@@ -11,6 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.models.account import Account
+from app.models.account_checkup import AccountCheckup, AccountCheckupBreakdown
 from app.models.category import Category
 from app.models.excluded_day import ExcludedDay
 from app.models.import_mapping import ImportMapping
@@ -496,6 +497,10 @@ BACKUP_TABLES = [
     PredictionInstance,
     ExcludedDay,
     ImportMapping,
+    # Checkups depend on accounts + transactions; breakdowns depend on checkups + payment_methods.
+    # Both must come AFTER their dependencies in this list (insert order on restore).
+    AccountCheckup,
+    AccountCheckupBreakdown,
 ]
 
 

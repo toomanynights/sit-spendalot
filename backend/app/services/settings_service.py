@@ -23,6 +23,8 @@ def _get_or_create_settings(db: Session) -> Settings:
         require_subcategory=False,
         prediction_notifications_enabled=False,
         prediction_notifications_time="09:00",
+        checkup_notifications_enabled=False,
+        checkup_notification_days=30,
         primary_account_id=None,
     )
     db.add(row)
