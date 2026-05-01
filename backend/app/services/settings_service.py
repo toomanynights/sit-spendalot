@@ -25,6 +25,7 @@ def _get_or_create_settings(db: Session) -> Settings:
         prediction_notifications_time="09:00",
         checkup_notifications_enabled=False,
         checkup_notification_days=30,
+        topbar_attention_dot_enabled=True,
         primary_account_id=None,
     )
     db.add(row)

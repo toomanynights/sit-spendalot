@@ -16,6 +16,9 @@ export const settingsApi = {
    * require_subcategory?: boolean,
  * prediction_notifications_enabled?: boolean,
  * prediction_notifications_time?: string,
+ * checkup_notifications_enabled?: boolean,
+ * checkup_notification_days?: number,
+ * topbar_attention_dot_enabled?: boolean,
    * primary_account_id?: number | null
    * }} data
    */

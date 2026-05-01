@@ -75,6 +75,7 @@ export default function SettingsPage() {
     prediction_notifications_time: '09:00',
     checkup_notifications_enabled: false,
     checkup_notification_days: String(NUMERIC_DEFAULTS.checkup_notification_days),
+    topbar_attention_dot_enabled: true,
   })
   const [notifError, setNotifError] = useState('')
   const [notifSuccess, setNotifSuccess] = useState(false)
@@ -108,6 +109,7 @@ export default function SettingsPage() {
       checkup_notification_days: String(
         settings.checkup_notification_days ?? NUMERIC_DEFAULTS.checkup_notification_days
       ),
+      topbar_attention_dot_enabled: settings.topbar_attention_dot_enabled ?? true,
     })
   }, [settings])
 
@@ -203,6 +205,7 @@ export default function SettingsPage() {
         prediction_notifications_time,
         checkup_notifications_enabled: notifForm.checkup_notifications_enabled,
         checkup_notification_days,
+        topbar_attention_dot_enabled: notifForm.topbar_attention_dot_enabled,
       })
       setNotifForm((prev) => ({
         ...prev,
@@ -423,7 +426,7 @@ export default function SettingsPage() {
           </Card>
 
           <Card shimmer>
-            <CardHeader icon={<Bell size={18} />} title="Notifications" />
+            <CardHeader icon={<Bell size={18} />} title="Notifications & Checkups" />
             <CardBody>
               <form onSubmit={handleSaveNotifications} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -469,6 +472,15 @@ export default function SettingsPage() {
                       onChange={(e) => setNotifField('checkup_notifications_enabled', e.target.checked)}
                     />
                     Browser notifications when a checkup is overdue
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-sm text-gold-muted cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-gold"
+                      checked={notifForm.topbar_attention_dot_enabled}
+                      onChange={(e) => setNotifField('topbar_attention_dot_enabled', e.target.checked)}
+                    />
+                    Show topbar attention dot for overdue checkups/pending prophecies
                   </label>
                 </div>
 

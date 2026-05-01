@@ -53,6 +53,9 @@ class Settings(Base):
     checkup_notification_days: Mapped[int] = mapped_column(
         Integer, nullable=False, default=30
     )
+    topbar_attention_dot_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True
+    )
     primary_account_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("accounts.id"), nullable=True
     )

@@ -19,6 +19,7 @@ class SettingsUpdate(BaseModel):
     )
     checkup_notifications_enabled: Optional[bool] = None
     checkup_notification_days: Optional[int] = Field(None, ge=1, le=365)
+    topbar_attention_dot_enabled: Optional[bool] = None
     primary_account_id: Optional[int] = None
 
 
@@ -38,6 +39,7 @@ class SettingsResponse(BaseModel):
     prediction_notifications_time: str
     checkup_notifications_enabled: bool
     checkup_notification_days: int
+    topbar_attention_dot_enabled: bool
     primary_account_id: Optional[int]
     created_at: datetime
     updated_at: datetime

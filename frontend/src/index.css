@@ -525,6 +525,15 @@
     @apply mb-0;
   }
 
+  .topbar-attention-dot {
+    @apply inline-block shrink-0 rounded-full;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-left: 0.4rem;
+    background: radial-gradient(circle at 35% 30%, #ffd86b 0%, #d4af37 55%, #8b4513 100%);
+    box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.35), 0 0 8px rgba(212, 175, 55, 0.45);
+  }
+
   .segmented-toggle {
     display: flex;
     border-radius: 0.375rem;

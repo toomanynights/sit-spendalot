@@ -73,7 +73,7 @@
 - [ ] 7.9 - Components reuse
 - [x] 7.10 - Browser notifications for predictions about to go overdue / already overdue (with setting: on/off + time)
 - [x] 7.11 - Per-account checkup vs. actual balance
-- [ ] 7.12 - In topbar, add optional attention dot in case account hasn't been checked up within specified period; if it has unconfirmed today/past prophecies
+- [x] 7.12 - In topbar, add optional attention dot in case account hasn't been checked up within specified period; if it has unconfirmed today/past prophecies
 
 ### Phase 8: Deployment (some may already be implemented - check) ✅ / ❌
 - [x] 8.1 - Systemd services
@@ -2080,6 +2080,38 @@ After implementing and before moving to next feature, introduce rule change that
 **Migration:** new revision `add_account_checkups`, down_revision = `7d4c2e1b8a90`, creating both new tables and adding the two settings columns (NOT NULL with server defaults, then drop server defaults to match the established pattern).
 
 **Mark complete:** `[x] 7.11 - Per-account checkup vs. actual balance`
+
+### Task 7.12: Topbar attention dot for overdue checkups / pending prophecies
+
+**What:** Add an optional attention dot in the topbar account switcher to signal that the currently selected account needs attention.
+
+**Trigger conditions (selected account):**
+- Checkup is overdue or never done:
+  - `days_since_last_checkup === null`, OR
+  - `days_since_last_checkup > checkup_notification_days`.
+- At least one prediction instance is still unconfirmed and is due today or earlier (`status=pending`, `scheduled_date <= today`).
+- Dot is shown when **either** condition is true.
+
+**Settings:**
+- Add `settings.topbar_attention_dot_enabled` (bool, default `true`).
+- Expose toggle in Settings page under the Notifications block (renamed to **"Notifications & Checkups"**).
+- If disabled, dot never renders.
+
+**Frontend placement & styling:**
+- Render the dot inside the active account tab in the topbar account switcher.
+- Keep styling in CSS classes (no inline styles), using existing medieval palette.
+- Dot should be decorative only (`aria-hidden`), and must not shift layout noticeably.
+
+**Acceptance criteria:**
+- Overdue/never reconciled selected account => dot visible.
+- Pending due/overdue prophecy for selected account => dot visible.
+- Neither condition => dot hidden.
+- Setting disabled => dot hidden.
+- Switching selected account updates dot state correctly.
+
+**Migration:** add a new Alembic revision after `b4e92a7c1f08` to add `settings.topbar_attention_dot_enabled` (`NOT NULL`, server default `true`, then drop server default).
+
+**Mark complete:** `[x] 7.12 - In topbar, add optional attention dot in case account hasn't been checked up within specified period; if it has unconfirmed today/past prophecies`
 
 ---
 
