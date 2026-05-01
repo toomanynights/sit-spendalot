@@ -46,16 +46,18 @@ export default function LowestFortune() {
 
   // FIX: The backend returns { account_id, perils: [...] }
   const points = lowestPoints?.perils || []
-  const isAlreadySubZero = Number.parseFloat(forecast?.actual_balance) < 0
   const firstBelowZero = forecast?.forecast?.find(
     (row) => Number.parseFloat(row.predicted_balance) < 0
   )
+  const todayPredictedBalance = Number.parseFloat(forecast?.forecast?.[0]?.predicted_balance)
+  const isTodayPredictedSubZero = Number.isFinite(todayPredictedBalance) && todayPredictedBalance < 0
+  const crossingLabel = formatRelativeDate(`${firstBelowZero?.date}T12:00:00`)
 
   return (
     <Card shimmer>
       <CardHeader icon={<TrendingDown size={20} />} title="Thy Lowest Fortunes" />
       <CardBody>
-        {isAlreadySubZero ? (
+        {isTodayPredictedSubZero ? (
           <div className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2">
             <p className="text-sm font-semibold text-danger">
               The treasury is sub-zero, m&apos;lord.
@@ -63,11 +65,9 @@ export default function LowestFortune() {
           </div>
         ) : firstBelowZero ? (
           <div className="mb-4 rounded-md border border-danger/30 bg-danger/10 px-3 py-2">
-            <p className="text-xs uppercase tracking-wide text-danger/80">
-              Falls below zero
-            </p>
+            <p className="text-xs uppercase tracking-wide text-danger/80">Falls below zero</p>
             <p className="text-sm font-semibold text-danger">
-              {formatRelativeDate(firstBelowZero.date)}
+              {crossingLabel}
             </p>
           </div>
         ) : null}
@@ -89,7 +89,7 @@ export default function LowestFortune() {
                       {idx === 0 ? 'Next Peril' : 'Following Peril'}
                     </p>
                     <p className="font-bold text-gold leading-tight">
-                      {formatRelativeDate(point.date)}
+                      {formatRelativeDate(`${point.date}T12:00:00`)}
                     </p>
                   </div>
                 </div>

@@ -2192,9 +2192,10 @@ A few things to start off (consider them to be discussion points rather than ord
 **Specs:**
 - Use existing forecast data (no backend/API changes).
 - Behavior:
-  - if current actual balance is already below zero, show: `The treasury is sub-zero, m'lord.`
+  - if today's **predicted** balance (forecast day 0) is already below zero, show: `The treasury is sub-zero, m'lord.`
   - else if forecast crosses below zero within horizon, show date of first crossing.
-  - else show nothing (line hidden).
+  - crossing label text is fixed to `Falls below zero` (forecast is forward-only from today).
+  - if no below-zero crossing exists in horizon, show nothing (line hidden).
 - Scope:
   - applies to primary-account `Thy Lowest Fortunes` card only (same visibility rules as existing card).
 
