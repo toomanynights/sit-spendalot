@@ -98,7 +98,6 @@
 - [ ] 9.13 - Column layout is not pretty, especially when one of the cards is too tall
 - [ ] 9.14 - allow rescheduling an instance, avoiding its regeneration despite changed date
 - [ ] 9.15 - Google Calendar integration
-- [ ] 9.16 - Problem: subcategory dropdown contains repetitions. (Don't just post-filter to unique - we need to figure out why that happens)
 
 ### Phase 10: Rolling predictions ✅ / ❌
 - [ ] 10.0 - Feature initiation (see specs)
@@ -106,8 +105,8 @@
 ### Phase 11: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop/customized mobile view... Some pages/elements already adapted to mobile - "no change needed" is also a valid answer) ✅ / ❌
 - [x] 11.1 - General components (sidear, topbar, general page content) - make sure accounts in topbar are one line and slide-able on mobile; pay attention to subcategory suggestions on both dashboard and quick entry (don't seem to work on mobile now)
 - [x] 11.2 - Dashboard page  (make sure the order of cards is the same on mobile as left-to-right on desktop: This Day's Fortune -> Thy Lowest Fortunes -> Record Thy Deed -> Recent Chronicles -> Future Prophecies), floating assistant (make sure a tap on activated assistant deactivates it; also it feels a bit intrusive on mobile now)
-- [ ] 11.3 - Quick Entry page
-- [ ] 11.4 - Chronicles page
+- [x] 11.3 - Quick Entry page
+- [x] 11.4 - Chronicles page
 - [ ] 11.5 - Prophecies page
 - [ ] 11.6 - Analytics page
 - [ ] 11.7 - Treasury page
@@ -2494,6 +2493,81 @@ DOD: feature is locked, described in specs, plan updated.
 - On desktop: hover behaviour is gone; click still toggles correctly.
 
 - [x] Task 11.2 complete
+
+---
+
+### Task 11.3: Quick Entry page mobile layout
+
+**Analysis:**
+- **Overall page structure** — Already uses `page-shell` + `page-container` (mobile `px-4`) with `max-w-3xl`; naturally mobile-friendly.
+- **Form sections** — `ExpenseRow` already collapses to one column on mobile (`grid-cols-1 sm:grid-cols-2`), and action buttons already stack (`flex-col sm:flex-row`).
+- **Touch ergonomics** — Controls use `min-h-touch`, row summaries remain readable/tappable, and the collapsible behavior works as intended.
+- **Prophecies Awaiting (expanded)** — Real-device check on a 5-inch phone confirms no overflow/clipping issues in the expanded list.
+
+**Verdict:** No UI changes required for 11.3. The current Quick Entry mobile layout is acceptable as-is.
+
+**Scope:**
+1. **No frontend code changes.**
+2. **Close task based on real-device validation.**
+
+**Files modified:**
+- `DEVELOPMENT_PLAN.md` — task notes + checklist updates only
+
+**No backend changes required.**
+
+**Testing performed:**
+- Quick Entry opened on a 5-inch smartphone.
+- "Prophecies Awaiting" expanded and reviewed for clipping/overflow.
+- Result: no issues observed.
+
+- [x] Task 11.3 complete
+
+---
+
+### Task 11.4: Chronicles page mobile layout
+
+**Analysis:**
+- **Transaction table** — 8 columns (Date, Account, Category, Subcategory, Type, Description, Amount, Actions) inside `overflow-x-auto`. On mobile this results in a wide horizontally-scrollable table that's hard to read and interact with. This is the primary problem.
+- **Filters section** — Already uses `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`, so filters stack on mobile. No issue.
+- **Edit modal** — Uses `fixed inset-0 px-4` with `max-w-2xl` and `grid-cols-1 md:grid-cols-2` form. Already adapts well on mobile.
+- **Pagination** — Simple prev/next buttons, no issue.
+
+**Approach:** On mobile (below `md:`), replace the table with a **card-based list** (similar to the dashboard's `RecentChronicles` `TransactionRow` layout). On desktop (`md:` and up), keep the existing table. This avoids horizontal scrolling and gives each transaction a compact, readable summary with accessible action buttons.
+
+**Scope:**
+
+1. **Mobile card list (below `md:`)**
+   - Render each transaction as a compact row/card showing:
+     - Left side: category (bold) + subcategory (if any) on one line; date + type badge on a second line; description as a muted third line (if present).
+     - Right side: signed amount (color-coded red/green) + Edit/Delete action buttons.
+   - Deleted transactions get reduced opacity + "(deleted)" label + Restore button instead of Edit/Delete.
+   - Use the same `border-l-4` color-coding pattern as `RecentChronicles` (expense = red-ish, income = green-ish, transfer/correction = gold).
+   - Wrap in a simple `space-y-2` container — no table markup.
+
+2. **Desktop table (at `md:` and above)**
+   - Keep existing table layout unchanged.
+   - Show with `hidden md:block` / hide mobile list with `md:hidden`.
+
+3. **Edit/Delete touch targets on mobile**
+   - Ensure action buttons have `min-h-touch` / `min-w-touch` for comfortable tapping.
+
+4. **No changes to filters or edit modal** — they already work on mobile.
+
+**Files to modify:**
+- `frontend/src/pages/TransactionsPage.jsx` — add mobile card list, wrap table with `hidden md:block`
+
+**No backend changes required.**
+
+**Testing:**
+- Open Chronicles on mobile (375px DevTools or real device).
+- Verify transactions display as stacked cards, no horizontal scroll.
+- Verify amount is color-coded (green for income, red for expense).
+- Tap Edit → modal opens full-screen-ish, fields are usable.
+- Tap Delete → confirm dialog appears.
+- Enable "Show deleted items" → deleted items are dimmed with Restore button.
+- On desktop (≥768px): verify the table layout is unchanged.
+
+- [x] Task 11.4 complete
 
 ---
 

@@ -27,6 +27,22 @@ const TYPE_OPTIONS = [
   { value: 'transfer', label: 'Transfer' },
 ]
 
+const TYPE_LABELS = {
+  daily: 'Daily',
+  unplanned: 'Unplanned',
+  predicted: 'Scheduled',
+  transfer: 'Transfer',
+  correction: 'Correction',
+}
+
+const TYPE_BADGE_VARIANT = {
+  daily: 'muted',
+  unplanned: 'danger',
+  predicted: 'primary',
+  transfer: 'muted',
+  correction: 'muted',
+}
+
 function toNumberOrNull(value) {
   if (!value) return null
   const num = Number(value)
@@ -35,6 +51,11 @@ function toNumberOrNull(value) {
 
 function txSignClass(amount) {
   return Number(amount) < 0 ? 'text-success' : 'text-danger'
+}
+
+function txBorderClass(tx) {
+  if (tx.type === 'transfer' || tx.type === 'correction') return 'border-l-4 border-gold/60'
+  return Number(tx.amount) < 0 ? 'border-l-4 border-l-success/70' : 'border-l-4 border-l-danger/70'
 }
 
 function filterCategoriesForTxType(categories, txType) {
@@ -57,6 +78,24 @@ function usedSubcategoriesForParent(subcategoryUsage, parentCategoryId) {
   if (!parentCategoryId) return []
   const values = subcategoryUsage?.[String(parentCategoryId)] || []
   return Array.isArray(values) ? values : []
+}
+
+function TypeBadge({ type }) {
+  const variant = TYPE_BADGE_VARIANT[type] ?? 'muted'
+  const base =
+    variant === 'primary'
+      ? 'bg-gold/20 text-gold border-gold/30'
+      : variant === 'danger'
+        ? 'bg-danger/20 text-danger border-danger/30'
+        : 'bg-black/30 text-gold-muted border-gold/20'
+
+  return (
+    <span
+      className={`inline-flex items-center rounded px-2 py-0.5 text-[11px] font-semibold border ${base}`}
+    >
+      {TYPE_LABELS[type] ?? type}
+    </span>
+  )
 }
 
 function EditModal({
@@ -521,7 +560,81 @@ export default function TransactionsPage() {
           )}
 
           {!isLoading && !isError && (transactions || []).length > 0 && (
-            <div className="overflow-x-auto">
+            <>
+              <div className="space-y-2 md:hidden">
+                {transactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className={[
+                      'rounded-md bg-black/20 px-3 py-2',
+                      txBorderClass(tx),
+                      tx.deleted_at ? 'opacity-60' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate">
+                          {tx.category_name || '—'}
+                          {tx.subcategory ? ` · ${tx.subcategory}` : ''}
+                        </p>
+                        <div className="mt-1 flex items-center gap-2 flex-wrap">
+                          <span className="text-xs text-gold-muted">{formatDate(tx.transaction_date)}</span>
+                          <TypeBadge type={tx.type} />
+                          {tx.deleted_at && (
+                            <span className="text-xs text-gold-muted">(deleted)</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gold-muted truncate mt-1">
+                          {selectedAccount?.name || tx.account_id}
+                          {tx.description ? ` · ${tx.description}` : ''}
+                        </p>
+                      </div>
+
+                      <div className="shrink-0 flex flex-col items-end gap-1.5">
+                        <span className={`text-base font-bold tabular-nums leading-none ${txSignClass(tx.amount)}`}>
+                          {Number(tx.amount) < 0 ? '+' : '-'}
+                          {formatAmount(tx.amount)}
+                        </span>
+                        {!tx.deleted_at ? (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              className="text-gold min-h-touch min-w-touch p-1.5"
+                              onClick={() => setEditingTx(tx)}
+                              title="Edit chronicle"
+                            >
+                              <Pencil size={14} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="text-danger min-h-touch min-w-touch p-1.5"
+                              onClick={() => handleDelete(tx)}
+                              disabled={deleteTx.isPending}
+                              title="Soft-delete chronicle"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            className="text-success min-h-touch"
+                            onClick={() => handleRestore(tx)}
+                            disabled={restoreTx.isPending}
+                            title="Restore chronicle"
+                          >
+                            Restore
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="border-b border-gold/20 text-gold-muted">
@@ -596,7 +709,8 @@ export default function TransactionsPage() {
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
 
           {!isLoading && !isError && (hasPrev || hasNext) && (
