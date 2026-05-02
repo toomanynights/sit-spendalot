@@ -261,10 +261,10 @@
     @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 items-start;
     grid-template-areas:
       'today'
+      'lowest'
       'record'
       'recent'
-      'future'
-      'lowest';
+      'future';
   }
 
   .dashboard-card {
@@ -344,7 +344,7 @@
   }
 
   .advisor-badge {
-    @apply relative w-40 h-40 rounded-full border-2 border-gold/80 flex items-center justify-center text-gold font-cinzel font-bold;
+    @apply relative w-20 h-20 md:w-40 md:h-40 rounded-full border-2 border-gold/80 flex items-center justify-center text-gold font-cinzel font-bold;
     background: linear-gradient(135deg, rgba(26,15,10,0.95) 0%, rgba(45,24,16,0.95) 100%);
     transition: transform 180ms ease, box-shadow 180ms ease;
     box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.2);
@@ -353,9 +353,16 @@
     backface-visibility: hidden;
   }
 
-  .advisor-badge:hover {
+  .advisor-badge--open {
     transform: rotate(5deg) scale(1.2);
     box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+  }
+
+  @media (hover: hover) {
+    .advisor-badge:hover {
+      transform: rotate(5deg) scale(1.2);
+      box-shadow: 0 0 14px rgba(212, 175, 55, 0.4);
+    }
   }
 
   .advisor-glow-ring {
@@ -370,9 +377,15 @@
 
   .advisor-speech-bubble {
     @apply absolute right-0 w-72 p-4 rounded-lg border border-gold/40 animate-fade-in-up;
-    bottom: 11rem;
+    bottom: 6rem;
     background: linear-gradient(135deg, rgba(45,24,16,0.98) 0%, rgba(26,15,10,0.98) 100%);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  @media (min-width: 768px) {
+    .advisor-speech-bubble {
+      bottom: 11rem;
+    }
   }
 
   .advisor-speech-bubble::after {

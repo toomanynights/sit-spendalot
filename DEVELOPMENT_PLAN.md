@@ -105,7 +105,7 @@
 
 ### Phase 11: Mobile layout (note: for every page, analyze if it's possible/worthwhile to transition the page into responsive design, or alternatives preferrable - hide the whole page/parts of content/suggest using desktop/customized mobile view... Some pages/elements already adapted to mobile - "no change needed" is also a valid answer) ✅ / ❌
 - [x] 11.1 - General components (sidear, topbar, general page content) - make sure accounts in topbar are one line and slide-able on mobile; pay attention to subcategory suggestions on both dashboard and quick entry (don't seem to work on mobile now)
-- [ ] 11.2 - Dashboard page  (make sure the order of cards is the same on mobile as left-to-right on desktop), floating assistant (make sure a tap on activated assistant deactivates it; also it feels a bit intrusive on mobile now)
+- [x] 11.2 - Dashboard page  (make sure the order of cards is the same on mobile as left-to-right on desktop: This Day's Fortune -> Thy Lowest Fortunes -> Record Thy Deed -> Recent Chronicles -> Future Prophecies), floating assistant (make sure a tap on activated assistant deactivates it; also it feels a bit intrusive on mobile now)
 - [ ] 11.3 - Quick Entry page
 - [ ] 11.4 - Chronicles page
 - [ ] 11.5 - Prophecies page
@@ -2453,6 +2453,47 @@ DOD: feature is locked, described in specs, plan updated.
 - Verify topbar title is visually centred on narrow screens.
 
 - [x] Task 11.1 complete
+
+---
+
+### Task 11.2: Dashboard page mobile layout
+
+**Analysis:**
+- **Card order on mobile** — Current mobile (single-column) `grid-template-areas` stacks cards as `today → record → recent → future → lowest`, pushing "Thy Lowest Fortunes" to the very bottom. The desired order mirrors left-to-right desktop reading order: `today → lowest → record → recent → future`.
+- **Floating advisor — size** — The advisor badge is `w-40 h-40` (160px), which occupies a significant portion of a mobile screen and is intrusive when the user just wants to see their data.
+- **Floating advisor — touch interaction** — On mobile, a tap fires `mouseenter` before `click`. Since `onMouseEnter` calls `openWithFreshTip()` (sets `isOpen = true`) and then `click` fires with `isOpen` already true and immediately sets it back to false — the bubble flickers but never stays open on tap. Additionally, there is no `mouseleave` equivalent on touch, so once the bubble is open via the compatibility `mouseenter` event it can get stuck with no way to dismiss it.
+
+**Scope:**
+
+1. **Card order — mobile `grid-template-areas`**
+   - Update the default (mobile-first) `grid-template-areas` in `.grid-dashboard-unified` to: `today → lowest → record → recent → future`.
+   - No JSX or DOM changes needed — CSS grid areas control visual order independently of source order.
+   - The `lowest` area collapses automatically when `dashboard-lowest` is not rendered (non-primary accounts).
+
+2. **Floating advisor — smaller badge on mobile**
+   - Reduce badge to `w-16 h-16` (64px) at mobile, keeping `w-40 h-40` at `md:` and above.
+   - Scale the speech bubble position/width to match.
+
+3. **Floating advisor — click-only toggle, click-outside dismiss**
+   - Remove `onMouseEnter` / `onMouseLeave` from the wrapper div entirely. On desktop, hover was a nice-to-have but it conflicts with touch; pure click-toggle is acceptable on both platforms.
+   - The existing `handleClick` toggle logic is already correct (opens when closed, closes when open).
+   - Add a `useEffect` with a `mousedown` listener on `document` to close the bubble when the user clicks/taps outside the advisor widget.
+
+**Files to modify:**
+- `frontend/src/index.css` — card order fix + advisor responsive sizing
+- `frontend/src/components/FloatingAdvisor.jsx` — remove hover events, add click-outside
+
+**No backend changes required.**
+
+**Testing:**
+- On mobile (DevTools or real device): verify dashboard cards stack in the order: This Day's Fortune → Thy Lowest Fortunes (primary only) → Record Thy Deed → Recent Chronicles → Future Prophecies.
+- Verify the advisor badge is compact (≈64px) on mobile and full-size on desktop.
+- Tap the badge → bubble opens and stays open.
+- Tap the badge again → bubble closes.
+- Tap anywhere outside the advisor → bubble closes.
+- On desktop: hover behaviour is gone; click still toggles correctly.
+
+- [x] Task 11.2 complete
 
 ---
 

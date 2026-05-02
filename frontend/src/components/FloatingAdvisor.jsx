@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { Info } from 'lucide-react'
 import tips from '../data/advisorTips.json'
 
@@ -18,6 +18,13 @@ export default function FloatingAdvisor() {
   const [isOpen, setIsOpen] = useState(false)
   const [tip, setTip] = useState(initialTip)
   const [imageFailed, setImageFailed] = useState(false)
+  const buttonRef = useRef(null)
+  const containerRef = useRef(null)
+
+  function deactivate() {
+    setIsOpen(false)
+    buttonRef.current?.blur()
+  }
 
   function openWithFreshTip() {
     setTip(prev => pickRandomTip(prev))
@@ -26,21 +33,33 @@ export default function FloatingAdvisor() {
 
   function handleClick() {
     if (isOpen) {
-      setIsOpen(false)
+      deactivate()
       return
     }
     openWithFreshTip()
   }
 
+  useEffect(() => {
+    if (!isOpen) return
+    function handleOutsideClick(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        deactivate()
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    document.addEventListener('touchstart', handleOutsideClick)
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+      document.removeEventListener('touchstart', handleOutsideClick)
+    }
+  }, [isOpen])
+
   return (
-    <div
-      className="advisor-float"
-      onMouseEnter={openWithFreshTip}
-      onMouseLeave={() => setIsOpen(false)}
-    >
+    <div ref={containerRef} className="advisor-float">
       <button
+        ref={buttonRef}
         type="button"
-        className="advisor-badge"
+        className={`advisor-badge${isOpen ? ' advisor-badge--open' : ''}`}
         onClick={handleClick}
         aria-label="Toggle Sir Spendalot advisor"
         aria-expanded={isOpen}
